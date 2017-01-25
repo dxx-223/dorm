@@ -56,6 +56,11 @@ void test() {
 	query.where = col_eq.make_shared();
 
 	test_query(query);
+
+	DORM::sqlEq<time_t> time_eq("name", time(nullptr));
+	query.where = time_eq.make_shared();
+
+	test_query(query);
 }
 
 

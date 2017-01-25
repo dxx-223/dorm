@@ -7,6 +7,11 @@
 
 namespace DORM {
 
+	class Column;
+	class Default;
+	class Null;
+
+
 	class Where {
 		public:
 			virtual std::shared_ptr<const Where> make_shared() const =0;

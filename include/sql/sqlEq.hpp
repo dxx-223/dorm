@@ -5,9 +5,6 @@
 
 namespace DORM {
 
-	class Column;
-
-
 	template<class CXXTYPE>
 	class sqlEq;
 
@@ -27,6 +24,42 @@ namespace DORM {
 			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const {};
 
 			virtual std::shared_ptr<const Where> make_shared() const { return std::make_shared< const sqlEq<Column> >(*this); };
+	};
+
+
+	template<>
+	class sqlEq<Default>: public Where {
+		private:
+			std::string		col;
+
+		public:
+			sqlEq(std::string init_col): col(init_col) {};
+
+			virtual std::string to_string() const {
+				return col + " = DEFAULT";
+			};
+
+			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const {};
+
+			virtual std::shared_ptr<const Where> make_shared() const { return std::make_shared< const sqlEq<Default> >(*this); };
+	};
+
+
+	template<>
+	class sqlEq<Null>: public Where {
+		private:
+			std::string		col;
+
+		public:
+			sqlEq(std::string init_col): col(init_col) {};
+
+			virtual std::string to_string() const {
+				return col + " = NULL";
+			};
+
+			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const {};
+
+			virtual std::shared_ptr<const Where> make_shared() const { return std::make_shared< const sqlEq<Null> >(*this); };
 	};
 
 

@@ -318,4 +318,16 @@ namespace DORM {
 		pstmt.setString(bind_offset++, value);
 	}
 
+
+	template<>
+	void DB::bind<time_t>(sql::PreparedStatement &pstmt, unsigned int &bind_offset, time_t value) {
+		pstmt.setString( bind_offset++, from_unixtime(value) );
+	}
+
+
+	template<>
+	void DB::bind<struct timeval>(sql::PreparedStatement &pstmt, unsigned int &bind_offset, struct timeval value) {
+		pstmt.setString( bind_offset++, from_unixtime(value) );
+	}
+
 }
