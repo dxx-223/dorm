@@ -12,8 +12,7 @@ namespace DORM {
 
 	class TableOrSubquery {
 		public:
-			// virtual const TableOrSubquery *clone() const { throw std::runtime_error("Can't clone abstract TableOrSubquery class"); };
-			virtual const TableOrSubquery *clone() const =0;
+			virtual std::shared_ptr<const TableOrSubquery> make_shared() const =0;
 
 			virtual std::string to_string() const =0;
 			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const =0;
@@ -27,7 +26,7 @@ namespace DORM {
 		public:
 			Table(std::string table): table_name(table) {};
 
-			virtual const Table *clone() const { return new Table(*this); };
+			virtual std::shared_ptr<const TableOrSubquery> make_shared() const;
 
 			virtual std::string to_string() const { return table_name; };
 			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const {};
@@ -41,9 +40,9 @@ namespace DORM {
 			
 		public:
 			// NOTE: We're using a shared_ptr to a copy of the passed Query to remove header includes
-			Subquery( const Query *query, std::string alias );
+			Subquery( const Query &query, std::string alias );
 
-			virtual const Subquery *clone() const { return new Subquery(*this); };
+			virtual std::shared_ptr<const TableOrSubquery> make_shared() const;
 
 			virtual std::string to_string() const;
 			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const;

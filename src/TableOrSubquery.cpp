@@ -4,9 +4,19 @@
 
 namespace DORM {
 
-	Subquery::Subquery( const Query *query, std::string alias ) {
+	std::shared_ptr<const TableOrSubquery> Table::make_shared() const {
+		return std::make_shared<const Table>(*this);
+	}
+
+
+	Subquery::Subquery( const Query &query, std::string alias ) {
 		subquery_alias = alias;
-		subquery.reset( query );
+		subquery = query.make_shared();
+	}
+
+
+	std::shared_ptr<const TableOrSubquery> Subquery::make_shared() const {
+		return std::make_shared<const Subquery>(*this);
 	}
 
 

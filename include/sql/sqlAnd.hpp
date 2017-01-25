@@ -14,8 +14,8 @@ namespace DORM {
 
 		public:
 			sqlAnd(const Where &left, const Where &right) {
-				clauses.push_back( std::shared_ptr<const Where>( left.clone() ) );
-				clauses.push_back( std::shared_ptr<const Where>( right.clone() ) );
+				clauses.push_back( left.make_shared() );
+				clauses.push_back( right.make_shared() );
 			}
 
 			sqlAnd(int count, ...) {
@@ -24,7 +24,8 @@ namespace DORM {
 
 				for(int i=0; i<count; i++) {
 					const Where *where = va_arg(args, const Where *);
-					clauses.push_back( std::shared_ptr<const Where>( where->clone() ) );
+
+					clauses.push_back( where->make_shared() );
 				}
 
 				va_end(args);
@@ -50,8 +51,7 @@ namespace DORM {
 					clauses[i]->bind(pstmt, bind_offset);
 			}
 
-			virtual const sqlAnd *clone() const { return new sqlAnd(*this); };
-
+			virtual std::shared_ptr<const Where> make_shared() const { return std::make_shared<const sqlAnd>(*this); };
 	};
 
 }

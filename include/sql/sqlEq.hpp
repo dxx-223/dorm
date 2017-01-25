@@ -26,7 +26,7 @@ namespace DORM {
 
 			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const {};
 
-			virtual const sqlEq *clone() const { return new sqlEq<Column>(*this); };
+			virtual std::shared_ptr<const Where> make_shared() const { return std::make_shared< const sqlEq<Column> >(*this); };
 	};
 
 
@@ -47,7 +47,7 @@ namespace DORM {
 				DORM::DB::bind<CXXTYPE>(pstmt, bind_offset, value);
 			};
 
-			virtual const sqlEq *clone() const { return new sqlEq<CXXTYPE>(*this); };
+			virtual std::shared_ptr<const Where> make_shared() const { return std::make_shared< const sqlEq<CXXTYPE> >(*this); };
 	};
 
 }

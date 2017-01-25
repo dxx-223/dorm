@@ -8,15 +8,15 @@ namespace DORM {
 
 	Tables::TableJoin::TableJoin( std::string join_type, std::string new_table, const Where &join_on_clause ) {
 		join = join_type;
-		table.reset( new Table(new_table) );
-		on_clause.reset( join_on_clause.clone() );
+		table = std::make_shared<Table>(new_table);
+		on_clause = join_on_clause.make_shared();
 	}
 
 
 	Tables::TableJoin::TableJoin( std::string join_type, const TableOrSubquery &new_table, const Where &join_on_clause ) {
 		join = join_type;
-		table.reset( new_table.clone() );
-		on_clause.reset( join_on_clause.clone() );
+		table = new_table.make_shared();
+		on_clause = join_on_clause.make_shared();
 	}
 
 
@@ -52,14 +52,12 @@ namespace DORM {
 	// --- Tables --- //
 
 	Tables::Tables( std::string table ) {
-		Table t(table);
-
-		initial_table.reset( t.clone() );
+		initial_table = std::make_shared<Table>(table);
 	}
 
 
 	Tables::Tables( const TableOrSubquery &table ) {
-		initial_table.reset( table.clone() );
+		initial_table = table.make_shared();
 	}
 
 

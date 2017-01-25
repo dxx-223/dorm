@@ -25,6 +25,8 @@ namespace DORM {
 
 			Query(): limit(0), offset(0), lock_in_share_mode(false), for_update(false) {};
 
+			std::shared_ptr<const Query> make_shared() const;
+
 			std::string to_string() const;
 			void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const;
 	};

@@ -38,22 +38,22 @@ void test() {
 	test_query(query);
 
 	DORM::sqlEq<int> age_eq("age", 43);
-	query.where.reset( age_eq.clone() );
+	query.where = age_eq.make_shared();
 
 	test_query(query);
 	
 	DORM::sqlEq<std::string> name_eq("name", "Dom");
-	query.where.reset( name_eq.clone() );
+	query.where = name_eq.make_shared();
 
 	test_query(query);
 
 	DORM::sqlAnd sql_and( age_eq, name_eq );
-	query.where.reset( sql_and.clone() );
+	query.where = sql_and.make_shared();
 
 	test_query(query);
 
 	DORM::sqlEq<DORM::Column> col_eq("age", "age");
-	query.where.reset( col_eq.clone() );
+	query.where = col_eq.make_shared();
 
 	test_query(query);
 }

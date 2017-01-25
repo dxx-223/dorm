@@ -3,6 +3,11 @@
 
 namespace DORM {
 
+	std::shared_ptr<const Query> Query::make_shared() const {
+		return std::make_shared<const Query>(*this);
+	}
+
+
 	std::string Query::to_string() const {
 		std::string sql = "SELECT ";
 
