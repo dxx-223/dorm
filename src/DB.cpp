@@ -165,13 +165,13 @@ namespace DORM {
 	}
 
 
-	int DB::writerow( const std::string &table, const std::vector<Where> &inserts_and_updates ) {
+	int DB::writerow( const std::string &table, const std::vector< SPC<Where> > &inserts_and_updates ) {
 		// the same data is used in the INSERT clause as the ON UPDATE clause
 		return writerow( table, inserts_and_updates, inserts_and_updates );
 	}
 
 
-	int DB::writerow( const std::string &table, const std::vector<Where> &inserts, const std::vector<Where> &updates ) {
+	int DB::writerow( const std::string &table, const std::vector< SPC<Where> > &inserts, const std::vector< SPC<Where> > &updates ) {
 		std::string sql;
 
 		// if there are no columns to set/update then use special form of SQL:
@@ -183,8 +183,8 @@ namespace DORM {
 			else
 				sql = "INSERT INTO " + table + " SET ";
 
-			for(auto &insert : inserts)
-				sql += insert.to_string() + ", ";
+			for(const auto &insert : inserts)
+				sql += insert->to_string() + ", ";
 
 			sql.pop_back();
 			sql.pop_back();
@@ -192,8 +192,8 @@ namespace DORM {
 			if ( !updates.empty() ) {
 				sql += " ON DUPLICATE KEY UPDATE ";
 
-				for(auto &update : updates)
-					sql += update.to_string() + ", ";
+				for(const auto &update : updates)
+					sql += update->to_string() + ", ";
 
 				sql.pop_back();
 				sql.pop_back();
@@ -205,11 +205,11 @@ namespace DORM {
 
 			unsigned int bind_offset = 1;
 
-			for(auto &insert : inserts)
-				insert.bind( *pstmt, bind_offset );
+			for(const auto &insert : inserts)
+				insert->bind( *pstmt, bind_offset );
 
-			for(auto &update : updates)
-				update.bind( *pstmt, bind_offset );
+			for(const auto &update : updates)
+				update->bind( *pstmt, bind_offset );
 
 			return pstmt->executeUpdate();
 		} catch (sql::SQLException &e) {

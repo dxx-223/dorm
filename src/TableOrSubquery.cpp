@@ -4,7 +4,7 @@
 
 namespace DORM {
 
-	std::shared_ptr<const TableOrSubquery> Table::make_shared() const {
+	SPC<TableOrSubquery> Table::make_shared() const {
 		return std::make_shared<const Table>(*this);
 	}
 
@@ -15,7 +15,7 @@ namespace DORM {
 	}
 
 
-	std::shared_ptr<const TableOrSubquery> Subquery::make_shared() const {
+	SPC<TableOrSubquery> Subquery::make_shared() const {
 		return std::make_shared<const Subquery>(*this);
 	}
 

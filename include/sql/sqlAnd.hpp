@@ -10,7 +10,7 @@ namespace DORM {
 
 	class sqlAnd: public Where {
 		private:
-			std::vector< std::shared_ptr<const Where> > clauses;
+			std::vector< SPC<Where> > clauses;
 
 		public:
 			sqlAnd(const Where &left, const Where &right) {
@@ -51,7 +51,7 @@ namespace DORM {
 					clauses[i]->bind(pstmt, bind_offset);
 			}
 
-			virtual std::shared_ptr<const Where> make_shared() const { return std::make_shared<const sqlAnd>(*this); };
+			virtual SPC<Where> make_shared() const { return std::make_shared<const sqlAnd>(*this); };
 	};
 
 }

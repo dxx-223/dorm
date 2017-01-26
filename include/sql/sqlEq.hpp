@@ -23,7 +23,7 @@ namespace DORM {
 
 			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const {};
 
-			virtual std::shared_ptr<const Where> make_shared() const { return std::make_shared< const sqlEq<Column> >(*this); };
+			virtual SPC<Where> make_shared() const { return std::make_shared< const sqlEq<Column> >(*this); };
 	};
 
 
@@ -41,7 +41,7 @@ namespace DORM {
 
 			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const {};
 
-			virtual std::shared_ptr<const Where> make_shared() const { return std::make_shared< const sqlEq<Default> >(*this); };
+			virtual SPC<Where> make_shared() const { return std::make_shared< const sqlEq<Default> >(*this); };
 	};
 
 
@@ -59,7 +59,7 @@ namespace DORM {
 
 			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const {};
 
-			virtual std::shared_ptr<const Where> make_shared() const { return std::make_shared< const sqlEq<Null> >(*this); };
+			virtual SPC<Where> make_shared() const { return std::make_shared< const sqlEq<Null> >(*this); };
 	};
 
 
@@ -80,7 +80,7 @@ namespace DORM {
 				DORM::DB::bind<CXXTYPE>(pstmt, bind_offset, value);
 			};
 
-			virtual std::shared_ptr<const Where> make_shared() const { return std::make_shared< const sqlEq<CXXTYPE> >(*this); };
+			virtual SPC<Where> make_shared() const { return std::make_shared< const sqlEq<CXXTYPE> >(*this); };
 	};
 
 }

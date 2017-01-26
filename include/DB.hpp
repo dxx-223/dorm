@@ -1,6 +1,8 @@
 #ifndef DORM__INCLUDE__DB__HPP
 #define DORM__INCLUDE__DB__HPP
 
+#include "SPC.hpp"
+
 #include <cppconn/connection.h>
 #include <vector>
 #include <string>
@@ -12,7 +14,6 @@ namespace DORM {
 	class Resultset;
 	class Query;
 	class Where;
-
 
 	class DB {
 		private:
@@ -44,8 +45,8 @@ namespace DORM {
 			static double fetch_double( const Query &query );
 			static std::string fetch_string( const Query &query );
 
-			static int writerow( const std::string &table, const std::vector<Where> &inserts_and_updates );
-			static int writerow( const std::string &table, const std::vector<Where> &inserts, const std::vector<Where> &updates );
+			static int writerow( const std::string &table, const std::vector< SPC<Where> > &inserts_and_updates );
+			static int writerow( const std::string &table, const std::vector< SPC<Where> > &inserts, const std::vector< SPC<Where> > &updates );
 
 			static int deleterow( const std::string &table, const Where &where_clause );
 			static int execute( const std::string &sql );

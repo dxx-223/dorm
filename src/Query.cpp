@@ -3,7 +3,7 @@
 
 namespace DORM {
 
-	std::shared_ptr<const Query> Query::make_shared() const {
+	SPC<Query> Query::make_shared() const {
 		return std::make_shared<const Query>(*this);
 	}
 
