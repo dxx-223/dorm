@@ -14,6 +14,8 @@
 
 
 class Test: public Test_ {
+	public:
+		void foo() { std::cout << "TEST FOO: " << name() << std::endl; }
 };
 
 

@@ -2,6 +2,7 @@
 #define DORM__INCLUDE__OBJECT_HPP
 
 #include "SPC.hpp"
+#include "Resultset.hpp"
 
 #include <string>
 #include <map>
@@ -12,6 +13,7 @@
 namespace DORM {
 
 	class Where;
+	class Query;
 
 	class Object {
 		protected:
@@ -39,6 +41,8 @@ namespace DORM {
 
 			std::vector<State>		column_states;
 
+			std::unique_ptr<Resultset> resultset;
+
 			virtual const column_index_by_name_t &get_column_index_by_name() const =0;
 			virtual const std::vector<Info> &get_column_info() const =0;
 
@@ -49,7 +53,14 @@ namespace DORM {
 			virtual void set_autoinc(const uint64_t &value) =0;
 
 		public:
+			Object() {};
+			Object(const Object &) =delete;
+			Object(Object &&) =delete;
+
 			virtual void save();
+
+			virtual uint64_t search();
+			virtual void search_prep( Query &query );
 	};
 
 }

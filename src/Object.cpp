@@ -1,6 +1,7 @@
 #include "Object.hpp"
 #include "DB.hpp"
 #include "Query.hpp"
+#include "Resultset.hpp"
 
 #include "sql/sqlEq.hpp"
 
@@ -75,7 +76,7 @@ namespace DORM {
 
 		// writerow in try..catch block
 		try {
-			DORM::DB::writerow( get_table_name(), inserts, updates);
+			DB::writerow( get_table_name(), inserts, updates);
 		} catch(const std::exception &e) {
 			throw e;
 		}
@@ -86,7 +87,7 @@ namespace DORM {
 			auto &state = column_states[ autoinc_index - 1 ];
 
 			if ( !state.exists || !state.defined ) {
-				DORM::Query query;
+				Query query;
 				query.cols.push_back("last_insert_id()");
 
 				const uint64_t autoinc_value = DB::fetch_uint64(query);		// what happens if this throws but the previous writerow() did not?
@@ -100,120 +101,40 @@ namespace DORM {
 		// reset column changed flags
 		for(auto &state : column_states)
 			state.changed = false;
+	}
 
+
+	uint64_t Object::search() {
+		Query query;
+		query.cols.push_back("*");
+		query.tables = Tables( get_table_name() );
+
+		search_prep(query);
+
+		// mySQL-only
+		query.cols[0] = "SQL_CALC_FOUND_ROWS " + query.cols[0];
+		resultset.reset( DB::select(query) );
+
+		Query found_rows_query;
+		found_rows_query.cols.push_back("found_rows()");
+		const uint64_t found_rows = DB::fetch_uint64(found_rows_query);
+
+		return found_rows;
+	}
+
+
+	void Object::search_prep(Query &query) {
+	}
 
 #if 0
-		std::vector<IDB::Where *>	inserts;
-		std::vector<IDB::Where *>	updates;
+	std::unique_ptr<Object> Object::result() {
+		if ( resultset && resultset->next() )
+			return make_from_resultset(resultset);
 
-		<% foreach my $col (@columns) { %>
-			/* keys dealt with later on */
-			<% next if grep { $_ eq $col->{name} } @keys %>
+		resultset.reset();
 
-			/* add <%=$col->{name}%> to SQL */
-
-			#ifdef MINIMAL_SAVE
-				/* add to UPDATEs if column has changed */
-				if (_<%=$col->{name}%>_changed) {
-			#endif
-					if (_<%=$col->{name}%>_exists) {
-						if (_<%=$col->{name}%>_defined) {
-							<% if ($col->{conn_type} eq 'Timestamp' || $col->{conn_type} eq 'F_Timestamp') { %>
-								updates.push_back( new IDB::sqlEq<%=$timestamp_t%>( "<%=$col->{name}%>", IDB::Engine::from_unixtime(_<%=$col->{name}%>) ) );
-							<% } else { %>
-								updates.push_back( new IDB::sqlEq<%=$col->{conn_type}%>( "<%=$col->{name}%>", _<%=$col->{name}%> ) );
-							<% } %>
-						} else {
-							<% if ( $col->{not_null} ) { %>
-							// column is "not null" and value is undefined so there had better be a default otherwise SQL exception thrown
-								updates.push_back( new IDB::sqlEqDefault( "<%=$col->{name}%>" ) );
-							<% } else { %>
-								updates.push_back( new IDB::sqlEqNull( "<%=$col->{name}%>" ) );
-							<% } %>
-						}
-					}
-			#ifdef MINIMAL_SAVE
-				}
-			#endif
-
-			#ifdef MINIMAL_SAVE
-				/* add to INSERTs if column has changed OR is a not-null column with no default (to avoid MySQL error 1364) */
-				<% if ($col->{not_null} && !$col->{has_default}) { %>
-					if (1) {	/* <%=$col->{name}%> is a "NOT NULL" column with no DEFAULT */
-				<% } else { %>
-					if ( _<%=$col->{name}%>_changed ) {
-				<% } %>
-			#endif
-					if (_<%=$col->{name}%>_exists) {
-						if (_<%=$col->{name}%>_defined) {
-							<% if ($col->{conn_type} eq 'Timestamp' || $col->{conn_type} eq 'F_Timestamp') { %>
-								inserts.push_back( new IDB::sqlEq<%=$timestamp_t%>( "<%=$col->{name}%>", IDB::Engine::from_unixtime(_<%=$col->{name}%>) ) );
-							<% } else { %>
-								inserts.push_back( new IDB::sqlEq<%=$col->{conn_type}%>( "<%=$col->{name}%>", _<%=$col->{name}%> ) );
-							<% } %>
-						} else {
-							<% if ( $col->{not_null} ) { %>
-								// column is "not null" and value is undefined so there had better be a default otherwise SQL exception thrown
-								inserts.push_back( new IDB::sqlEqDefault( "<%=$col->{name}%>" ) );
-							<% } else { %>
-								inserts.push_back( new IDB::sqlEqNull( "<%=$col->{name}%>" ) );
-							<% } %>
-						}
-					}
-			#ifdef MINIMAL_SAVE
-				}
-			#endif
-		<% } %>
-
-		/* keys: <%=join(' ', @keys)%> */
-		/* this only need to be in the INSERT section */
-		<% foreach my $col (@columns) { %>
-			<% next unless grep { $_ eq $col->{name} } @keys %>
-
-			if (_<%=$col->{name}%>_exists) {
-				if (_<%=$col->{name}%>_defined) {
-					/* add <%=$col->{name}%> to updates */
-					<% if ($col->{conn_type} eq 'Timestamp' || $col->{conn_type} eq 'F_Timestamp') { %>
-						inserts.push_back( new IDB::sqlEq<%=$timestamp_t%>( "<%=$col->{name}%>", IDB::Engine::from_unixtime(_<%=$col->{name}%>) ) );
-					<% } else { %>
-						inserts.push_back( new IDB::sqlEq<%=$col->{conn_type}%>( "<%=$col->{name}%>", _<%=$col->{name}%> ) );
-					<% } %>
-				}
-			}
-		<% } %>
-
-		/* do save */
-		try {
-			idbe()->writerow("<%=$table%>", inserts, updates);
-		} catch (const std::exception &e) {
-			/* clean inserts & updates */
-			for(auto insert : inserts)
-				delete insert;
-			for(auto update : updates)
-				delete update;
-
-			throw(e);
-		}
-
-		/* clean inserts & updates */
-		for(auto insert : inserts)
-			delete insert;
-		for(auto update : updates)
-			delete update;
-
-		/* reset changed-ness */
-		<% foreach my $col (@columns) { %>
-			_<%=$col->{name}%>_changed = false;
-		<% } %>
-
-		/* autoinc support */
-		<% if ($autoinc) { %>
-			if (!_<%=$autoinc%>_exists || !_<%=$autoinc%>_defined) {
-				this-><%=$autoinc%>( idbe()->fetchInt("last_insert_id()", IDB_NO_TABLES, IDB_NO_WHERE, IDB_NO_OPTIONS) );
-			}
-		<% } %>
-#endif
-
+		return std::unique_ptr<Object>();
 	}
+#endif
 
 }
