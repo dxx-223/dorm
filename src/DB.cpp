@@ -1,6 +1,7 @@
 #include "DB.hpp"
 #include "Resultset.hpp"
 #include "Query.hpp"
+#include "Timestamp.hpp"
 
 #include <mysql/mysql.h>
 #include <cppconn/connection.h>
@@ -105,11 +106,11 @@ namespace DORM {
 	Resultset *DB::select( const Query &query ) {
 		std::string sql = query.to_string();
 
-		try {
-			#ifdef DORM_DB_DEBUG
-				std::cout << "[DORM] Prepare SQL: " << sql << std::endl;
-			#endif
+		#ifdef DORM_DB_DEBUG
+			std::cout << "[DORM] Prepare SQL: " << sql << std::endl;
+		#endif
 
+		try {
 			std::unique_ptr<sql::PreparedStatement> pstmt( conn->prepareStatement(sql) );
 
 			unsigned int bind_offset = 1;
@@ -200,6 +201,10 @@ namespace DORM {
 			}
 		}
 
+		#ifdef DORM_DB_DEBUG
+			std::cout << "[DORM] Prepare SQL: " << sql << std::endl;
+		#endif
+
 		try {
 			std::unique_ptr<sql::PreparedStatement> pstmt( conn->prepareStatement(sql) );
 
@@ -223,6 +228,10 @@ namespace DORM {
 	int DB::deleterow(const std::string &table, const Where &where_clause) {
 		std::string sql = "DELETE FROM " + table + " WHERE " + where_clause.to_string();
 
+		#ifdef DORM_DB_DEBUG
+			std::cout << "[DORM] Prepare SQL: " << sql << std::endl;
+		#endif
+
 		try {
 			std::unique_ptr<sql::PreparedStatement> pstmt( conn->prepareStatement(sql) );
 
@@ -240,6 +249,10 @@ namespace DORM {
 
 
 	int DB::execute(const std::string &sql) {
+		#ifdef DORM_DB_DEBUG
+			std::cout << "[DORM] Prepare SQL: " << sql << std::endl;
+		#endif
+
 		try {
 			std::unique_ptr<sql::Statement> stmt( conn->createStatement() );
 
@@ -314,14 +327,32 @@ namespace DORM {
 
 
 	template<>
+	void DB::bind<unsigned int>(sql::PreparedStatement &pstmt, unsigned int &bind_offset, unsigned int value) {
+		pstmt.setUInt(bind_offset++, value);
+	}
+
+
+	template<>
+	void DB::bind<int64_t>(sql::PreparedStatement &pstmt, unsigned int &bind_offset, int64_t value) {
+		pstmt.setInt64(bind_offset++, value);
+	}
+
+
+	template<>
+	void DB::bind<uint64_t>(sql::PreparedStatement &pstmt, unsigned int &bind_offset, uint64_t value) {
+		pstmt.setUInt64(bind_offset++, value);
+	}
+
+
+	template<>
 	void DB::bind<std::string>(sql::PreparedStatement &pstmt, unsigned int &bind_offset, std::string value) {
 		pstmt.setString(bind_offset++, value);
 	}
 
 
 	template<>
-	void DB::bind<time_t>(sql::PreparedStatement &pstmt, unsigned int &bind_offset, time_t value) {
-		pstmt.setString( bind_offset++, from_unixtime(value) );
+	void DB::bind<Timestamp>(sql::PreparedStatement &pstmt, unsigned int &bind_offset, Timestamp value) {
+		pstmt.setString( bind_offset++, from_unixtime(value.tv) );
 	}
 
 
@@ -329,5 +360,4 @@ namespace DORM {
 	void DB::bind<struct timeval>(sql::PreparedStatement &pstmt, unsigned int &bind_offset, struct timeval value) {
 		pstmt.setString( bind_offset++, from_unixtime(value) );
 	}
-
 }
