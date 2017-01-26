@@ -1,5 +1,5 @@
-#ifndef SPTR
-#define SPTR
+#ifndef DORM__INCLUDE__SPC_HPP
+#define DORM__INCLUDE__SPC_HPP
 
 #include <memory>
 

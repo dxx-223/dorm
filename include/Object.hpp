@@ -52,6 +52,8 @@ namespace DORM {
 			virtual const int get_autoinc_index() const { return 0; };
 			virtual void set_autoinc(const uint64_t &value) =0;
 
+			virtual void search_prep_columns(Query &query);
+
 		public:
 			Object() {};
 			Object(const Object &) =delete;
@@ -60,7 +62,7 @@ namespace DORM {
 			virtual void save();
 
 			virtual uint64_t search();
-			virtual void search_prep( Query &query );
+			virtual void search_prep( Query &query ) {};
 	};
 
 }

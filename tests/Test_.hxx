@@ -3,8 +3,11 @@
 #ifndef TEST___HXX
 #define TEST___HXX
 
-#include "Object.hpp"
 #include "DB.hpp"
+#include "Object.hpp"
+#include "SearchMod.hpp"
+#include "Query.hpp"
+
 #include "sql/sqlEq.hpp"
 
 class Test;
@@ -13,21 +16,17 @@ class Test;
 class Test_: public DORM::Object {
 	private:
 		static const std::vector< std::function< SPC<DORM::Where>(const Test_ &obj) > > column_eq_function;
-
-	protected:
 		static const column_index_by_name_t column_index_by_name;
 		static const std::vector<Info> column_info;
+
+		uint64_t _testID;
+		std::string _name;
+		unsigned int _age;
 
 		virtual const column_index_by_name_t &get_column_index_by_name() const { return column_index_by_name; };
 		virtual const std::vector<Info> &get_column_info() const { return column_info; };
 		virtual SPC<DORM::Where> column_eq(int index) const { return (column_eq_function[index - 1])(*this); };
 
-	private:
-		uint64_t _testID;
-		std::string _name;
-		unsigned int _age;
-
-	protected:
 		virtual const std::string get_table_name() const { return "Tests"; };
 
 		virtual const int get_autoinc_index() const { return 1; };

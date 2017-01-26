@@ -30,6 +30,8 @@ namespace DORM {
 
 			std::string to_string() const;
 			void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const;
+
+			void and_where( const Where &some_where );
 	};
 
 }

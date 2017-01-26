@@ -12,10 +12,19 @@
 
 #include "Test_.hxx"
 
+#include "sql/sqlLt.hpp"
+
 
 class Test: public Test_ {
 	public:
+		DORM::SearchMod<unsigned int> younger_than;
+	
 		void foo() { std::cout << "TEST FOO: " << name() << std::endl; }
+		
+		void search_prep( DORM::Query &query ) {
+			if (younger_than)
+				query.and_where( DORM::sqlLt<unsigned int>( "age", younger_than() ) );
+		};
 };
 
 

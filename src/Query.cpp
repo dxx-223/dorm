@@ -1,5 +1,7 @@
 #include "Query.hpp"
 
+#include "sql/sqlAnd.hpp"
+
 
 namespace DORM {
 
@@ -54,6 +56,14 @@ namespace DORM {
 
 		if (having)
 			having->bind(pstmt, bind_offset);
+	}
+
+
+	void Query::and_where( const Where &some_where ) {
+		if (where)
+			where = sqlAnd( where, some_where.make_shared() ).make_shared();
+		else
+			where = some_where.make_shared();
 	}
 
 }
