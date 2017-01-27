@@ -25,20 +25,70 @@ const DORM::Object::column_index_by_name_t Test_::column_index_by_name = {
 };
 
 
-std::unique_ptr<Test> Test_::make_from_resultset( std::unique_ptr<DORM::Resultset> &resultset ) {
-	auto obj = std::make_unique<Test>();
+const std::vector< std::function< void(const DORM::Resultset &result, Test_ &obj) > > Test_::column_resultset_function = {
+		[](const DORM::Resultset &result, Test_ &obj){ obj.testID( result.getUInt64(1) ); },
+		[](const DORM::Resultset &result, Test_ &obj){ obj.name( result.getString(2) ); },
+		[](const DORM::Resultset &result, Test_ &obj){ obj.age( result.getUInt(3) ); },
+};
 
-	obj->_testID = resultset->getUInt64(1);
-	obj->_name = resultset->getString(2);
-	obj->_age = resultset->getUInt(3);
 
-	return obj;
+void Test_::clear() {
+	// explictly [re]set to "empty" values
+	_testID = 0;
+	_name.clear();
+	_age = 0;
+}
+
+
+std::unique_ptr<DORM::Object> Test_::make_unique() {
+	return std::make_unique<Test>();
+}
+
+
+void Test_::set_from_resultset( const DORM::Resultset &result ) {
+	const int n_columns = column_info.size();
+
+	int i;
+
+	try {
+		for(i=0; i<n_columns; ++i)
+			// check for NULLs first
+			if ( result.isNull(i+1) )
+				undefined_column_state(i+1);
+			else
+				( column_resultset_function[i] )( result, *this );
+	} catch (sql::SQLException &e) {
+		std::cerr << "[DORM] " << e.getErrorCode() << ": " << e.what() << std::endl;
+		std::cerr << "[DORM] " << get_table_name() << " column index " << i+1 << std::endl;
+		throw(e);
+	}
+}
+
+
+std::unique_ptr<Test> Test_::load() {
+	DORM::Object::search();
+	return result();
+}
+
+
+std::unique_ptr<Test> Test_::load(uint64_t key_testID) {
+	Test obj;
+	obj.testID( key_testID );
+	return obj.load();
+}
+
+
+std::unique_ptr<Test> Test_::load(const DORM::Object &obj) {
+	// XXX TO DO
 }
 
 
 std::unique_ptr<Test> Test_::result() {
-	if ( resultset && resultset->next() )
-		return make_from_resultset(resultset);
+	if ( resultset && resultset->next() ) {
+		auto obj = std::make_unique<Test>();
+		obj->set_from_resultset( *resultset );
+		return obj;
+	}
 
 	resultset.reset();
 

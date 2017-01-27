@@ -103,6 +103,21 @@ namespace DORM {
 	}
 
 
+	std::unique_ptr<sql::PreparedStatement> DB::prepare( const std::string &sql ) {
+		#ifdef DORM_DB_DEBUG
+			std::cout << "[DORM] Prepare SQL: " << sql << std::endl;
+		#endif
+
+		try {
+			return std::unique_ptr<sql::PreparedStatement>( conn->prepareStatement(sql) );
+		} catch (sql::SQLException &e) {
+			std::cerr << "[DORM] " << e.getErrorCode() << ": " << e.what() << std::endl;
+			std::cerr << "[DORM] " << sql << std::endl;
+			throw(e);
+		}
+	}
+
+
 	Resultset *DB::select( const Query &query ) {
 		std::string sql = query.to_string();
 

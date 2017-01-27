@@ -38,6 +38,8 @@ namespace DORM {
 
 			static bool check_connection();
 
+			static std::unique_ptr<sql::PreparedStatement> prepare( const std::string &sql );
+
 			static Resultset *select( const Query &query );
 
 			static uint64_t fetch_uint64( const Query &query );

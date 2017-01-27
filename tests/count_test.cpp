@@ -8,26 +8,16 @@ char DB_PASSWORD[] = "";
 char DB_SCHEMA[] = "test";
 
 
-
 int main() {
 	DORM::DB::connect( DB_URI, DB_USER, DB_PASSWORD, DB_SCHEMA );
 
 	DORM::DB::execute("drop table if exists Tests");
 	DORM::DB::execute("create temporary table Tests ( testID serial, name varchar(255) not null, age int unsigned not null, primary key (testID) )");
-
-	Test t;
-	t.name("Fudge");
-	t.age(5);
-	t.save();
+	DORM::DB::execute("insert into Tests values (null, 'Fudge', 5), (null, 'Dominic', 43), (null, 'Georgie', 5)");
 
 	Test tests;
-	tests.age(5);
 
-	auto test = tests.load();
-	std::cout << "testID: " << test->testID() << ", name: " << test->name() << ", age: " << test->age() << std::endl;
-	test->foo();
+	const uint64_t row_count = tests.count();
 
-	test = Test::load(1);
-	std::cout << "testID: " << test->testID() << ", name: " << test->name() << ", age: " << test->age() << std::endl;
-	test->foo();
+	std::cout << "Row count: " << row_count << std::endl;
 }

@@ -12,6 +12,47 @@
 
 namespace DORM {
 
+#if 0
+	Object::Object(const Object &other_obj) {
+		auto other_column_info = other_obj.get_column_info();
+		const auto &other_column_states = other_obj.column_states;
+
+		const int n_other_columns = other_column_info.size();
+		for(int i=0; i<n_other_columns; ++i) {
+			const auto &other_info = other_column_info[i];
+
+			if ( !other_info.is_key )
+				continue;
+
+			const auto &other_state = other_column_states[ other_info.index - 1 ];
+
+			if ( other_state.exists && other_state.defined ) {
+				// copy column from other to same-named column in us
+			}
+		}
+
+
+		<%=$class%>::<%=$class%>(const IO::Object *other_obj): IO::Object() {
+			this->_init();
+
+			<% foreach my $col (@columns) { %>
+				if ( other_obj->is_key_by_name("<%=$col->{name}%>") )
+					if ( other_obj->exists_by_name("<%=$col->{name}%>") )
+						if ( other_obj->defined_by_name("<%=$col->{name}%>") )
+							this-><%=$col->{name}%>( other_obj->get_<%=$col->{conn_type}%>_by_name("<%=$col->{name}%>") );
+						else
+							this->remove_<%=$col->{name}%>();
+					else
+						this->remove_<%=$col->{name}%>();
+				else
+					this->remove_<%=$col->{name}%>();
+			<% } %>
+		};
+
+	}
+#endif
+
+
 	void Object::save() {
 		#if 0
 			const column_index_by_name_t &column_index_by_name = get_column_index_by_name();
@@ -130,6 +171,7 @@ namespace DORM {
 	}
 
 
+#if 0
 	uint64_t Object::search() {
 		Query query;
 		query.cols.push_back("*");
@@ -143,6 +185,183 @@ namespace DORM {
 		// mySQL-only
 		query.cols[0] = "SQL_CALC_FOUND_ROWS " + query.cols[0];
 		resultset.reset( DB::select(query) );
+
+		Query found_rows_query;
+		found_rows_query.cols.push_back("found_rows()");
+		const uint64_t found_rows = DB::fetch_uint64(found_rows_query);
+
+		return found_rows;
+	}
+#endif
+
+	uint64_t Object::search( std::initializer_list<Object> objs ) {
+		Query query;
+		query.cols.push_back("*");
+		query.tables = Tables( get_table_name() );
+
+		// convert columns
+		search_prep_columns(query);
+
+		// XXX JOIN ADDITIONAL OBJECTS HERE
+
+		search_prep(query);
+
+		// mySQL-only
+		query.cols[0] = "SQL_CALC_FOUND_ROWS " + query.cols[0];
+		resultset.reset( DB::select(query) );
+
+		Query found_rows_query;
+		found_rows_query.cols.push_back("found_rows()");
+		const uint64_t found_rows = DB::fetch_uint64(found_rows_query);
+
+		return found_rows;
+	}
+
+
+	void Object::refresh() {
+		// we only need keys to reload the object
+		Query query;
+		query.cols.push_back("*");
+		query.tables = Tables( get_table_name() );
+		query.limit = 1;
+
+		auto column_info = get_column_info();
+
+		std::vector< SPC<Where> > where_clauses;
+
+		for(const auto &info : column_info) {
+			if ( !info.is_key )
+				continue;
+
+			const auto &state = column_states[ info.index - 1 ];
+
+			if ( state.exists &&  state.defined )
+				where_clauses.push_back( column_eq(info.index) );
+		}
+
+		if ( !where_clauses.empty() )
+			query.where = sqlAnd(where_clauses).make_shared();
+
+		std::unique_ptr<Resultset> results( DB::select(query) );
+
+		set_from_resultset( *results );
+
+		// reset state flags
+		for(auto &state : column_states) {
+			state.changed = false;
+			state.exists = true;
+		}
+	}
+
+
+	bool Object::present() {
+		Query query;
+		query.cols.push_back("*");
+		query.tables = Tables( get_table_name() );
+
+		// convert columns
+		search_prep_columns(query);
+
+		search_prep(query);
+
+		query.cols.assign( {"true"} );
+		query.limit = 1;
+
+		std::unique_ptr<Resultset> results( DB::select(query) );
+
+		if ( results && results->next() )
+			return results->getBoolean(1);
+
+		return false;
+	}
+
+
+	uint64_t Object::count() {
+		Query query;
+		query.cols.push_back("*");
+		query.tables = Tables( get_table_name() );
+
+		// convert columns
+		search_prep_columns(query);
+
+		search_prep(query);
+
+		query.limit = 1;
+
+		/* we do a full search then use SQL_CALC_FOUND_ROWS ? */
+		/* why not use count(*) ? */
+
+		// mySQL-only
+		query.cols[0] = "SQL_CALC_FOUND_ROWS " + query.cols[0];
+		std::unique_ptr<Resultset> results( DB::select(query) );
+
+		Query found_rows_query;
+		found_rows_query.cols.push_back("found_rows()");
+		const uint64_t found_rows = DB::fetch_uint64(found_rows_query);
+
+		return found_rows;
+	}
+
+
+	bool Object::lock_record( LOCK_MODE lock_mode ) {
+		// SELECT true FROM <table> WHERE <defined keys> FOR UPDATE
+		Query query;
+		query.cols.push_back("SQL_CALC_FOUND_ROWS true");
+		query.tables = Tables( get_table_name() );
+		query.limit = 1;
+
+		if (lock_mode == EXCLUSIVE)
+			query.for_update = true;
+		else
+			query.lock_in_share_mode = true;
+
+		auto column_info = get_column_info();
+
+		std::vector< SPC<Where> > where_clauses;
+
+		for(const auto &info : column_info) {
+			if ( !info.is_key )
+				continue;
+
+			const auto &state = column_states[ info.index - 1 ];
+
+			if ( state.exists &&  state.defined )
+				where_clauses.push_back( column_eq(info.index) );
+		}
+
+		if ( !where_clauses.empty() )
+			query.where = sqlAnd(where_clauses).make_shared();
+
+		std::unique_ptr<Resultset> results( DB::select(query) );
+
+		Query found_rows_query;
+		found_rows_query.cols.push_back("found_rows()");
+		const uint64_t found_rows = DB::fetch_uint64(found_rows_query);
+
+		return found_rows == 1;
+	}
+
+
+	uint64_t Object::lock_records( LOCK_MODE lock_mode ) {
+		// SELECT true FROM <tables> WHERE <...> FOR UPDATE
+		Query query;
+		query.cols.push_back("*");
+		query.tables = Tables( get_table_name() );
+
+		// convert columns
+		search_prep_columns(query);
+
+		search_prep(query);
+
+		// rewrite slightly
+		query.cols.assign( {"SQL_CALC_FOUND_ROWS true"} );
+
+		if (lock_mode == EXCLUSIVE)
+			query.for_update = true;
+		else
+			query.lock_in_share_mode = true;
+
+		std::unique_ptr<Resultset> results( DB::select(query) );
 
 		Query found_rows_query;
 		found_rows_query.cols.push_back("found_rows()");
