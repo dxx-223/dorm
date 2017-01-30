@@ -13,21 +13,23 @@
 namespace DORM {
 
 #if 0
-	Object::Object(const Object &other_obj) {
-		auto other_column_info = other_obj.get_column_info();
+	void Object::copy_columns(const Object &other_obj) {
+		const auto &our_column_info = get_column_info();
+
+		const auto &other_column_info = other_obj.get_column_info();
 		const auto &other_column_states = other_obj.column_states;
 
 		const int n_other_columns = other_column_info.size();
 		for(int i=0; i<n_other_columns; ++i) {
 			const auto &other_info = other_column_info[i];
 
-			if ( !other_info.is_key )
-				continue;
-
 			const auto &other_state = other_column_states[ other_info.index - 1 ];
 
 			if ( other_state.exists && other_state.defined ) {
 				// copy column from other to same-named column in us
+				for( const auto &our_info : our_column_info )
+					if ( our_info.name == other_info.name )
+
 			}
 		}
 
@@ -150,7 +152,7 @@ namespace DORM {
 	}
 
 
-	void Object::search_prep_columns(Query &query) {
+	void Object::search_prep_columns(Query &query) const {
 		auto column_info = get_column_info();
 
 		std::vector< SPC<Where> > where_clauses;
@@ -194,15 +196,54 @@ namespace DORM {
 	}
 #endif
 
-	uint64_t Object::search( std::initializer_list<Object> objs ) {
+	uint64_t Object::search( std::initializer_list< std::reference_wrapper<const Object> > objs ) {
+		const std::string table_name = get_table_name();
+
 		Query query;
 		query.cols.push_back("*");
-		query.tables = Tables( get_table_name() );
+		query.tables = Tables( table_name );
 
 		// convert columns
 		search_prep_columns(query);
 
-		// XXX JOIN ADDITIONAL OBJECTS HERE
+		// join additional objects
+		if ( objs.size() > 0 ) {
+			std::map<std::string, std::string> table_by_column;
+
+			auto column_info = get_column_info();
+
+			for(const auto &info : column_info)
+				table_by_column[ info.name ] = table_name;
+
+			for( const auto &obj_ref : objs ) {
+				const auto &obj = obj_ref.get();
+
+				Query join_query;
+
+				obj.search_prep_columns( join_query );
+
+				obj.search_prep(query);
+
+				auto obj_column_info = obj.get_column_info();
+				const std::string obj_table_name = obj.get_table_name();
+
+				for( const auto &obj_info : obj_column_info ) {
+					const auto &map_it = table_by_column.find( obj_info.name );
+
+					if ( map_it != table_by_column.end() ) {
+						const std::string &obj_col_name = obj_table_name + "." + obj_info.name;
+
+						join_query.and_where( sqlEq<Column>( obj_col_name, table_name + "." + obj_info.name ) );
+					} else {
+						// update map of columns to table with new, previously unknown, column
+						table_by_column[ obj_info.name ] = obj_table_name;
+					}
+				}
+
+				// JOIN table
+				query.tables.join( "JOIN", obj_table_name, join_query.where );
+			}
+		}
 
 		search_prep(query);
 

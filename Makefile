@@ -3,7 +3,7 @@ OBJS=${patsubst src/%.cpp, obj/%.o, ${SRCS}}
 TESTSRCS=${wildcard tests/*.cpp}
 TESTBINS=${patsubst tests/%.cpp, tests/bin/%, ${TESTSRCS}}
 
-TESTGENS=${wildcard tests/*.cxx}
+TESTGENS=${wildcard tests/*.cxx tests/*/*.cxx}
 TESTOBJS=${patsubst tests/%.cxx, tests/obj/%.o, ${TESTGENS}}
 
 INCDIRS=include
@@ -27,7 +27,7 @@ clean-tests:
 	-rm -fr tests/obj tests/bin
 
 obj/%.d: src/%.cpp include/%.hpp
-	@mkdir -p obj
+	@mkdir -p `dirname $@`
 	@echo 'Building $@ from $<'
 	@echo -n 'obj/' > $@
 	@${CXX} ${CXXFLAGS} -MM $< >> $@
@@ -46,10 +46,10 @@ tests: ${OBJS} ${TESTOBJS} ${TESTBINS}
 
 tests/bin/%: tests/%.cpp ${OBJS} ${TESTOBJS}
 	@echo 'Building test $@ from $<'
-	@mkdir -p tests/bin
-	@${CXX} ${CXXFLAGS} ${LIBDIRS:%=-L%} -o $@ $< ${OBJS} ${TESTOBJS} ${LIBS:%=-l%}
+	@mkdir -p `dirname $@`
+	@${CXX} ${CXXFLAGS} -Itests ${LIBDIRS:%=-L%} -o $@ $< ${OBJS} ${TESTOBJS} ${LIBS:%=-l%}
 
 tests/obj/%.o: tests/%.cxx ${OBJS}
 	@echo 'Compiling object helper $@ from $<'
-	@mkdir -p tests/obj
-	@${CXX} ${CXXFLAGS} -c -o $@ $<
+	@mkdir -p `dirname $@`
+	@${CXX} ${CXXFLAGS} -Itests -c -o $@ $<

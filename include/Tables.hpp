@@ -26,6 +26,9 @@ namespace DORM {
 					TableJoin( std::string join_type, std::string new_table, const Where &join_on_clause );
 					TableJoin( std::string join_type, const TableOrSubquery &new_table, const Where &join_on_clause );
 
+					TableJoin( std::string join_type, std::string new_table, SPC<Where> join_on_clause );
+					TableJoin( std::string join_type, const TableOrSubquery &new_table, SPC<Where> join_on_clause );
+
 					std::string to_string() const;
 					void bind( sql::PreparedStatement &pstmt, unsigned int &bind_offset ) const;
 			};
@@ -40,6 +43,9 @@ namespace DORM {
 
 			void join( std::string join_type, std::string new_table, const Where &join_on_clause );
 			void join( std::string join_type, const TableOrSubquery &new_table, const Where &join_on_clause );
+
+			void join( std::string join_type, std::string new_table, SPC<Where> join_on_clause );
+			void join( std::string join_type, const TableOrSubquery &new_table, SPC<Where> join_on_clause );
 
 			std::string to_string() const;
 			void bind( sql::PreparedStatement &pstmt, unsigned int &bind_offset ) const;

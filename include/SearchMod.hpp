@@ -1,3 +1,6 @@
+#ifndef DORM__INCLUDE__SEARCHMOD_HPP
+#define DORM__INCLUDE__SEARCHMOD_HPP
+
 namespace DORM {
 
 	template<typename CXXTYPE>
@@ -10,8 +13,10 @@ namespace DORM {
 			SearchMod(): p_is_set(false) {};
 
 			void operator()(CXXTYPE value) { p_value = value; p_is_set = true; };
-			CXXTYPE operator()() { return p_value; };
+			CXXTYPE operator()() const { return p_value; };
 
 			operator bool() const { return p_is_set; };
 	};
 }
+
+#endif

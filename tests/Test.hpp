@@ -21,7 +21,7 @@ class Test: public Test_ {
 	
 		void foo() { std::cout << "TEST FOO: " << name() << std::endl; }
 		
-		void search_prep( DORM::Query &query ) {
+		void search_prep( DORM::Query &query ) const {
 			if (younger_than)
 				query.and_where( DORM::sqlLt<unsigned int>( "age", younger_than() ) );
 		};

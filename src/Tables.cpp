@@ -20,6 +20,20 @@ namespace DORM {
 	}
 
 
+	Tables::TableJoin::TableJoin( std::string join_type, std::string new_table, SPC<Where> join_on_clause ) {
+		join = join_type;
+		table = std::make_shared<Table>(new_table);
+		on_clause = join_on_clause;
+	}
+
+
+	Tables::TableJoin::TableJoin( std::string join_type, const TableOrSubquery &new_table, SPC<Where> join_on_clause ) {
+		join = join_type;
+		table = new_table.make_shared();
+		on_clause = join_on_clause;
+	}
+
+
 	std::string Tables::TableJoin::to_string() const {
 		if (!table)
 			throw std::runtime_error("Empty TableJoin found in to_string()");
@@ -68,6 +82,19 @@ namespace DORM {
 
 
 	void Tables::join( std::string join_type, const TableOrSubquery &new_table, const Where &join_on_clause ) {
+		TableJoin table_join(join_type, new_table, join_on_clause);
+
+		table_joins.push_back( table_join );
+	}
+
+
+	void Tables::join( std::string join_type, std::string new_table, SPC<Where> join_on_clause ) {
+		const Table t(new_table);
+		join( join_type, t, join_on_clause );
+	}
+
+
+	void Tables::join( std::string join_type, const TableOrSubquery &new_table, SPC<Where> join_on_clause ) {
 		TableJoin table_join(join_type, new_table, join_on_clause);
 
 		table_joins.push_back( table_join );
