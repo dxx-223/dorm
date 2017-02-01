@@ -1,10 +1,10 @@
-SRCS=${wildcard src/*.cpp}
+SRCS=${wildcard src/[[:upper:]]*.cpp}
 OBJS=${patsubst src/%.cpp, obj/%.o, ${SRCS}}
 TESTSRCS=${wildcard tests/*.cpp}
 TESTBINS=${patsubst tests/%.cpp, tests/bin/%, ${TESTSRCS}}
 
-TESTGENS=${wildcard tests/*.cxx tests/*/*.cxx}
-TESTOBJS=${patsubst tests/%.cxx, tests/obj/%.o, ${TESTGENS}}
+TESTGENS=${wildcard output/*.cxx output/*/*.cxx}
+TESTOBJS=${patsubst output/%.cxx, tests/obj/%.o, ${TESTGENS}}
 
 INCDIRS=include
 INCLUDES=${INCDIRS:%=-I%} -isystem /usr/local/include
@@ -14,13 +14,13 @@ LIBS=mysqlcppconn mysqlclient thr
 
 CXX=c++
 DEBUGFLAGS=-O0 -ferror-limit=3 -DDORM_DB_DEBUG
-CXXFLAGS=-g -Wall -std=c++14 -pthread ${INCLUDES} ${DEBUGFLAGS}
+CXXFLAGS=-pipe -g -Wall -std=c++14 -pthread ${INCLUDES} ${DEBUGFLAGS}
 
-all: ${OBJS}
+all: ${OBJS} bin/generate_object
 
 .PHONY: clean
 clean:
-	-rm -fr obj tests/obj tests/bin
+	-rm -fr bin obj tests/obj tests/bin
 	
 .PHONY: clean-tests
 clean-tests:
@@ -41,15 +41,20 @@ obj/%.o: src/%.cpp include/%.hpp
 	@echo 'Compiling $@ from $<'
 	@${CXX} ${CXXFLAGS} -c -o $@ $<
 
+bin/%: src/%.cpp
+	@echo 'Building $@ from $<'
+	@mkdir -p `dirname $@`
+	@${CXX} ${CXXFLAGS} -o $@ $<
+
 .PHONY: tests
 tests: ${OBJS} ${TESTOBJS} ${TESTBINS}
 
 tests/bin/%: tests/%.cpp ${OBJS} ${TESTOBJS}
 	@echo 'Building test $@ from $<'
 	@mkdir -p `dirname $@`
-	@${CXX} ${CXXFLAGS} -Itests ${LIBDIRS:%=-L%} -o $@ $< ${OBJS} ${TESTOBJS} ${LIBS:%=-l%}
+	@${CXX} ${CXXFLAGS} -Itests -Ioutput ${LIBDIRS:%=-L%} -o $@ $< ${OBJS} ${TESTOBJS} ${LIBS:%=-l%}
 
-tests/obj/%.o: tests/%.cxx ${OBJS}
+tests/obj/%.o: output/%.cxx ${OBJS}
 	@echo 'Compiling object helper $@ from $<'
 	@mkdir -p `dirname $@`
-	@${CXX} ${CXXFLAGS} -Itests -c -o $@ $<
+	@${CXX} ${CXXFLAGS} -Itests -Ioutput -c -o $@ $<

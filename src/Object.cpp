@@ -12,62 +12,66 @@
 
 namespace DORM {
 
-#if 0
-	void Object::copy_columns(const Object &other_obj) {
+	void Object::set_from_resultset(const Resultset &result) {
+		const auto &column_info = get_column_info();
+		const int n_columns = column_info.size();
+
+		int i;
+
+		try {
+			for(i=0; i<n_columns; ++i)
+				// check for NULLs first
+				if ( result.isNull(i+1) )
+					columns[i].undefine();
+				else
+					column_from_resultset(i, result);
+		} catch (sql::SQLException &e) {
+			std::cerr << "[DORM] " << e.getErrorCode() << ": " << e.what() << std::endl;
+			std::cerr << "[DORM] " << get_table_name() << " column index " << i+1 << std::endl;
+			throw(e);
+		}
+	}
+
+
+	void Object::copy_columns(const Object &other_obj, bool only_keys ) {
 		const auto &our_column_info = get_column_info();
 
 		const auto &other_column_info = other_obj.get_column_info();
-		const auto &other_column_states = other_obj.column_states;
-
 		const int n_other_columns = other_column_info.size();
-		for(int i=0; i<n_other_columns; ++i) {
-			const auto &other_info = other_column_info[i];
 
-			const auto &other_state = other_column_states[ other_info.index - 1 ];
+		for( const auto &our_info : our_column_info ) {
+			if ( only_keys && !our_info.is_key )
+				continue;
 
-			if ( other_state.exists && other_state.defined ) {
-				// copy column from other to same-named column in us
-				for( const auto &our_info : our_column_info )
-					if ( our_info.name == other_info.name )
+			for(int i=0; i<n_other_columns; ++i) {
+				const auto &other_info = other_column_info[i];
+				const auto &other_column = other_obj.columns[ other_info.index - 1 ];
 
+				if ( !other_column.exists || !other_column.defined || other_info.name != our_info.name )
+					continue;
+
+				columns[i] = other_column;
+				columns[i].defined = columns[i].exists = true;
 			}
 		}
-
-
-		<%=$class%>::<%=$class%>(const IO::Object *other_obj): IO::Object() {
-			this->_init();
-
-			<% foreach my $col (@columns) { %>
-				if ( other_obj->is_key_by_name("<%=$col->{name}%>") )
-					if ( other_obj->exists_by_name("<%=$col->{name}%>") )
-						if ( other_obj->defined_by_name("<%=$col->{name}%>") )
-							this-><%=$col->{name}%>( other_obj->get_<%=$col->{conn_type}%>_by_name("<%=$col->{name}%>") );
-						else
-							this->remove_<%=$col->{name}%>();
-					else
-						this->remove_<%=$col->{name}%>();
-				else
-					this->remove_<%=$col->{name}%>();
-			<% } %>
-		};
-
 	}
-#endif
+
+
+	void Object::clear() {
+		// reset all columns back to initial values
+		// this is done by subclass
+
+		// reset all column states to unchanged, undefined and nonexistent
+		for (auto &column : columns)
+			column.changed = column.defined = column.exists = false;
+	}
 
 
 	void Object::save() {
-		#if 0
-			const column_index_by_name_t &column_index_by_name = get_column_index_by_name();
-
-			for(const auto &column_info : column_index_by_name) {
-				std::cout << "column " << column_info.first << " has index " << column_info.second << std::endl;
-			}
-		#endif
-
 		std::vector< SPC<Where> > updates;
 		std::vector< SPC<Where> > inserts;
 
-		auto column_info = get_column_info();
+		const auto &column_info = get_column_info();
 
 		/*
 		 *	foreach non-key column:
@@ -88,20 +92,20 @@ namespace DORM {
 
 			std::cout << "non-key column: " << info.name << std::endl;
 
-			const auto &state = column_states[ info.index - 1 ];
+			const auto &column = columns[ info.index - 1 ];
 
-			if ( state.exists && state.changed ) {
-				if ( state.defined )
-					updates.push_back( column_eq(info.index) );
+			if ( column.exists && column.changed ) {
+				if ( column.defined )
+					updates.push_back( column.column_eq(info.name) );
 				else if ( info.not_null )
 					updates.push_back( sqlEq<Default>(info.name).make_shared() );
 				else
 					updates.push_back( sqlEq<Null>(info.name).make_shared() );
 			}
 
-			if ( (info.not_null && !info.has_default) || state.changed ) {
-				if ( state.defined )
-					inserts.push_back( column_eq(info.index) );
+			if ( (info.not_null && !info.has_default) || column.changed ) {
+				if ( column.defined )
+					inserts.push_back( column.column_eq(info.name) );
 				else if ( info.not_null )
 					inserts.push_back( sqlEq<Default>(info.name).make_shared() );
 				else
@@ -116,10 +120,10 @@ namespace DORM {
 
 			std::cout << "key column: " << info.name << std::endl;
 
-			const auto &state = column_states[ info.index - 1 ];
+			const auto &column = columns[ info.index - 1 ];
 
-			if ( state.exists && state.defined )
-				inserts.push_back( column_eq(info.index) );
+			if ( column.exists && column.defined )
+				inserts.push_back( column.column_eq(info.name) );
 		}
 
 		// writerow in try..catch block
@@ -132,69 +136,45 @@ namespace DORM {
 		// grab last_insert_id() if table has AUTO_INCREMENT column
 		const int autoinc_index = get_autoinc_index();
 		if (autoinc_index) {
-			auto &state = column_states[ autoinc_index - 1 ];
+			auto &column = columns[ autoinc_index - 1 ];
 
-			if ( !state.exists || !state.defined ) {
+			if ( !column.exists || !column.defined ) {
 				Query query;
 				query.cols.push_back("last_insert_id()");
 
 				const uint64_t autoinc_value = DB::fetch_uint64(query);		// what happens if this throws but the previous writerow() did not?
 
-				set_autoinc(autoinc_value);
-				state.exists = true;
-				state.defined = true;
+				column = autoinc_value;
 			}
 		}
 
 		// reset column changed flags
-		for(auto &state : column_states)
-			state.changed = false;
+		for(auto &column : columns)
+			column.changed = false;
 	}
 
 
 	void Object::search_prep_columns(Query &query) const {
-		auto column_info = get_column_info();
+		const auto &column_info = get_column_info();
 
 		std::vector< SPC<Where> > where_clauses;
 
 		for(const auto &info : column_info) {
-			const auto &state = column_states[ info.index - 1 ];
+			const auto &column = columns[ info.index - 1 ];
 
-			if ( state.exists ) {
-				if ( state.defined )
-					where_clauses.push_back( column_eq(info.index) );
-				else
-					where_clauses.push_back( sqlIsNull(info.name).make_shared() );
-			}
+			if ( !column.exists )
+				continue;
+
+			if ( column.defined )
+				where_clauses.push_back( column.column_eq(info.name) );
+			else
+				where_clauses.push_back( sqlIsNull(info.name).make_shared() );
 		}
 
 		if ( !where_clauses.empty() )
 			query.where = sqlAnd(where_clauses).make_shared();
 	}
 
-
-#if 0
-	uint64_t Object::search() {
-		Query query;
-		query.cols.push_back("*");
-		query.tables = Tables( get_table_name() );
-
-		// convert columns
-		search_prep_columns(query);
-
-		search_prep(query);
-
-		// mySQL-only
-		query.cols[0] = "SQL_CALC_FOUND_ROWS " + query.cols[0];
-		resultset.reset( DB::select(query) );
-
-		Query found_rows_query;
-		found_rows_query.cols.push_back("found_rows()");
-		const uint64_t found_rows = DB::fetch_uint64(found_rows_query);
-
-		return found_rows;
-	}
-#endif
 
 	uint64_t Object::search( std::initializer_list< std::reference_wrapper<const Object> > objs ) {
 		const std::string table_name = get_table_name();
@@ -210,7 +190,7 @@ namespace DORM {
 		if ( objs.size() > 0 ) {
 			std::map<std::string, std::string> table_by_column;
 
-			auto column_info = get_column_info();
+			const auto &column_info = get_column_info();
 
 			for(const auto &info : column_info)
 				table_by_column[ info.name ] = table_name;
@@ -224,7 +204,7 @@ namespace DORM {
 
 				obj.search_prep(query);
 
-				auto obj_column_info = obj.get_column_info();
+				const auto &obj_column_info = obj.get_column_info();
 				const std::string obj_table_name = obj.get_table_name();
 
 				for( const auto &obj_info : obj_column_info ) {
@@ -266,7 +246,7 @@ namespace DORM {
 		query.tables = Tables( get_table_name() );
 		query.limit = 1;
 
-		auto column_info = get_column_info();
+		const auto &column_info = get_column_info();
 
 		std::vector< SPC<Where> > where_clauses;
 
@@ -274,10 +254,10 @@ namespace DORM {
 			if ( !info.is_key )
 				continue;
 
-			const auto &state = column_states[ info.index - 1 ];
+			const auto &column = columns[ info.index - 1 ];
 
-			if ( state.exists &&  state.defined )
-				where_clauses.push_back( column_eq(info.index) );
+			if ( column.exists &&  column.defined )
+				where_clauses.push_back( column.column_eq(info.name) );
 		}
 
 		if ( !where_clauses.empty() )
@@ -285,12 +265,19 @@ namespace DORM {
 
 		std::unique_ptr<Resultset> results( DB::select(query) );
 
+		if ( !results || !results->next() ) {
+			sql::SQLException e("Row not found for refresh()");
+			std::cerr << "[DORM] " << e.getErrorCode() << ": " << e.what() << std::endl;
+			std::cerr << "[DORM] " << get_table_name() << std::endl;
+			throw(e);
+		}
+
 		set_from_resultset( *results );
 
 		// reset state flags
-		for(auto &state : column_states) {
-			state.changed = false;
-			state.exists = true;
+		for(auto &column : columns) {
+			column.changed = false;
+			column.exists = true;
 		}
 	}
 
@@ -356,7 +343,7 @@ namespace DORM {
 		else
 			query.lock_in_share_mode = true;
 
-		auto column_info = get_column_info();
+		const auto &column_info = get_column_info();
 
 		std::vector< SPC<Where> > where_clauses;
 
@@ -364,10 +351,10 @@ namespace DORM {
 			if ( !info.is_key )
 				continue;
 
-			const auto &state = column_states[ info.index - 1 ];
+			const auto &column = columns[ info.index - 1 ];
 
-			if ( state.exists &&  state.defined )
-				where_clauses.push_back( column_eq(info.index) );
+			if ( column.exists &&  column.defined )
+				where_clauses.push_back( column.column_eq(info.name) );
 		}
 
 		if ( !where_clauses.empty() )

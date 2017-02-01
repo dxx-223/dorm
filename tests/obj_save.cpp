@@ -40,6 +40,7 @@ int main() {
 
 	test_query(query);
 
+	t.name("Sludge");
 	t.age(6);
 	t.save();
 

@@ -12,7 +12,9 @@
 
 #include "Test_.hxx"
 
-#include "sql/sqlLt.hpp"
+
+CHILD_OBJECTS(TestFrog, test_frogs);
+CHILD_OBJECT(TestSingle, test_single);
 
 
 class Test: public Test_ {

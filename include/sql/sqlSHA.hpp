@@ -22,9 +22,9 @@ namespace DORM {
 				return output;
 			}
 
-			virtual void bind(sql::PreparedStatement *pstmt, unsigned int &bind_offset) const {
-				pstmt->setString(bind_offset++, sha_salt);
-				pstmt->setString(bind_offset++, sha_plaintext);
+			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const {
+				pstmt.setString(bind_offset++, sha_salt);
+				pstmt.setString(bind_offset++, sha_plaintext);
 			}
 	};
 
