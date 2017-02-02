@@ -16,16 +16,16 @@ namespace DORM {
 			sqlSHA(std::string col, std::string salt, std::string salt_col, std::string plaintext): \
 				sha_col(col), sha_salt(salt), sha_salt_col(salt_col), sha_plaintext(plaintext) {};
 
-			virtual std::string toString( std::string prefix = "" ) const {
-				std::string output = prefix.empty() ? prefix : prefix + " ";
-				output += sha_col + " = SHA2( CONCAT( ?, " + sha_salt_col + ", ? ), 256 )";
-				return output;
+			virtual std::string to_string() const {
+				return sha_col + " = SHA2( CONCAT( ?, " + sha_salt_col + ", ? ), 256 )";
 			}
 
 			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const {
 				pstmt.setString(bind_offset++, sha_salt);
 				pstmt.setString(bind_offset++, sha_plaintext);
 			}
+
+			virtual SPC<Where> make_shared() const { return std::make_shared<const sqlSHA>(*this); };
 	};
 
 }

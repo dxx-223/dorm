@@ -8,11 +8,11 @@
 #define CHILD_OBJECTS(obj, nav)
 
 #include "Object.hpp"
+#include "Timestamp.hpp"
 
 // for searchmod support
 #include "SearchMod.hpp"
 #include "Query.hpp"
-#include "sqlOps.hpp"
 
 
 // our class
@@ -45,8 +45,12 @@ class <%=info.class_name%>_: public DORM::Object {
 		<% for( auto &column : info.columns ) { %>
 			inline <%=column.cxxtype%> <%=column.name%>() const { return columns[<%=column.index - 1%>]; };
 			inline void <%=column.name%>( const <%=column.cxxtype%> &value) { columns[<%=column.index - 1%>] = value; columns[<%=column.index - 1%>].define(); };
+
 			inline void undef_<%=column.name%>() { columns[<%=column.index - 1%>].undefine(); };
 			inline void delete_<%=column.name%>() { columns[<%=column.index - 1%>].remove(); };
+
+			inline bool defined_<%=column.name%>() { return columns[<%=column.index - 1%>].defined; };
+			inline bool exists_<%=column.name%>() { return columns[<%=column.index - 1%>].exists; };
 		<% } %>
 
 		virtual std::unique_ptr<<%=info.class_name%>> load();
@@ -55,6 +59,7 @@ class <%=info.class_name%>_: public DORM::Object {
 		static std::unique_ptr<<%=info.class_name%>> load( <%=info.key_params%> );
 
 		virtual std::unique_ptr<<%=info.class_name%>> result();
+		virtual void search_and_destroy();
 
 		// navigators
 		<% for (auto &navigator : info.navigators) { %>

@@ -41,8 +41,8 @@ void <%=info.class_name%>_::clear() {
 		<% const auto &column = info.columns[i]; %>
 		<% if (column.cxxtype == "std::string") { %>
 			columns[<%=i%>] = std::string();
-		<% } else if (column.cxxtype == "struct timeval") { %>
-			columns[<%=i%>] = timeval( { 0, 0 } );
+		<% } else if (column.cxxtype == "DORM::Timestamp") { %>
+			columns[<%=i%>] = DORM::Timestamp();
 		<% } else if (column.cxxtype == "bool") { %>
 			columns[<%=i%>] = false;
 		<% } else { %>
@@ -97,6 +97,14 @@ std::unique_ptr<<%=info.class_name%>> <%=info.class_name%>_::result() {
 	auto obj = std::make_unique<<%=info.class_name%>>();
 	obj->set_from_resultset( *resultset );
 	return obj;
+}
+
+
+void <%=info.class_name%>_::search_and_destroy() {
+	search();
+
+	while( auto victim = result() )
+		victim->delete_obj();
 }
 
 

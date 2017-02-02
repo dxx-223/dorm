@@ -13,22 +13,22 @@ LIBDIRS=/usr/local/lib /usr/local/lib/mysql
 LIBS=mysqlcppconn mysqlclient thr
 
 CXX=c++
-DEBUGFLAGS=-O0 -ferror-limit=3 -DDORM_DB_DEBUG
-CXXFLAGS=-pipe -g -Wall -std=c++14 -pthread ${INCLUDES} ${DEBUGFLAGS}
+// DEBUGFLAGS=-O0 -ferror-limit=3 -DDORM_DB_DEBUG
+CXXFLAGS=-pipe -g -Wall -std=c++14 -pthread -fPIC ${INCLUDES} ${DEBUGFLAGS}
 
-all: ${OBJS} bin/generate_object
+all: lib/libDORM.so bin/generate_object
 
 .PHONY: clean
 clean:
-	-rm -fr bin obj tests/obj tests/bin
+	-rm -fr bin obj lib tests/obj tests/bin
 	
 .PHONY: clean-tests
 clean-tests:
 	-rm -fr tests/obj tests/bin
 
 obj/%.d: src/%.cpp include/%.hpp
+	@echo 'Generating makefile $@ from $<'
 	@mkdir -p `dirname $@`
-	@echo 'Building $@ from $<'
 	@echo -n 'obj/' > $@
 	@${CXX} ${CXXFLAGS} -MM $< >> $@
 
@@ -45,6 +45,12 @@ bin/%: src/%.cpp
 	@echo 'Building $@ from $<'
 	@mkdir -p `dirname $@`
 	@${CXX} ${CXXFLAGS} -o $@ $<
+
+lib/libDORM.so: ${OBJS}
+	@echo 'Building shared library $@'
+	@mkdir -p `dirname $@`
+	@${CXX} ${CXXFLAGS} -shared -Wl,-soname,libDORM.so -o $@ $^
+	
 
 .PHONY: tests
 tests: ${OBJS} ${TESTOBJS} ${TESTBINS}

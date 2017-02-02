@@ -12,7 +12,7 @@ namespace DORM {
 			bool is_active;
 
 		public:
-			Transaction( default_action_enum action );
+			Transaction( default_action_enum action = ROLLBACK );
 			Transaction(const Transaction &) =delete;
 			Transaction(Transaction &&) =default;
 			virtual ~Transaction();

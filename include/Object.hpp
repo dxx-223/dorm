@@ -46,7 +46,8 @@ namespace DORM {
 		public:
 			enum LOCK_MODE { SHARE, EXCLUSIVE };
 
-			void copy_columns( const Object &other_obj, bool only_keys = false );
+			uint64_t		limit = 0;
+			uint64_t		offset = 0;
 
 			Object() {};
 			Object(Object &&) =delete;			// might be safe to allow move-constructor
@@ -55,6 +56,8 @@ namespace DORM {
 			// Object(const Object &other_obj): resultset(nullptr) { copy_columns(other_obj); };	// also used by CHILD_OBJECTS navigators, e.g. Users to UserComments via userID
 
 			virtual ~Object() {};
+
+			void copy_columns( const Object &other_obj, bool only_keys = false );
 
 			virtual void clear();
 
@@ -67,6 +70,9 @@ namespace DORM {
 
 			virtual uint64_t search( std::initializer_list< std::reference_wrapper<const Object> > objs );
 			virtual uint64_t search() { std::initializer_list< std::reference_wrapper<const Object> > objs = {}; return search(objs); };
+
+			virtual void delete_obj();
+			virtual void search_and_destroy() =0;
 
 			virtual void search_prep( Query &query ) const {};
 

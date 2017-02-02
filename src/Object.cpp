@@ -12,6 +12,28 @@
 
 namespace DORM {
 
+	void Object::search_prep_columns(Query &query) const {
+		const auto &column_info = get_column_info();
+
+		std::vector< SPC<Where> > where_clauses;
+
+		for(const auto &info : column_info) {
+			const auto &column = columns[ info.index - 1 ];
+
+			if ( !column.exists )
+				continue;
+
+			if ( column.defined )
+				where_clauses.push_back( column.column_eq(info.name) );
+			else
+				where_clauses.push_back( sqlIsNull(info.name).make_shared() );
+		}
+
+		if ( !where_clauses.empty() )
+			query.where = sqlAnd(where_clauses).make_shared();
+	}
+
+
 	void Object::set_from_resultset(const Resultset &result) {
 		const auto &column_info = get_column_info();
 		const int n_columns = column_info.size();
@@ -32,6 +54,8 @@ namespace DORM {
 		}
 	}
 
+
+	// --- public --- //
 
 	void Object::copy_columns(const Object &other_obj, bool only_keys ) {
 		const auto &our_column_info = get_column_info();
@@ -154,34 +178,16 @@ namespace DORM {
 	}
 
 
-	void Object::search_prep_columns(Query &query) const {
-		const auto &column_info = get_column_info();
-
-		std::vector< SPC<Where> > where_clauses;
-
-		for(const auto &info : column_info) {
-			const auto &column = columns[ info.index - 1 ];
-
-			if ( !column.exists )
-				continue;
-
-			if ( column.defined )
-				where_clauses.push_back( column.column_eq(info.name) );
-			else
-				where_clauses.push_back( sqlIsNull(info.name).make_shared() );
-		}
-
-		if ( !where_clauses.empty() )
-			query.where = sqlAnd(where_clauses).make_shared();
-	}
-
-
 	uint64_t Object::search( std::initializer_list< std::reference_wrapper<const Object> > objs ) {
 		const std::string table_name = get_table_name();
 
 		Query query;
 		query.cols.push_back("*");
 		query.tables = Tables( table_name );
+
+		// copy any LIMIT / OFFSET from us first, but can be overridden by search_prep()
+		query.limit = limit;
+		query.offset = offset;
 
 		// convert columns
 		search_prep_columns(query);
@@ -236,6 +242,28 @@ namespace DORM {
 		const uint64_t found_rows = DB::fetch_uint64(found_rows_query);
 
 		return found_rows;
+	}
+
+
+	void Object::delete_obj() {
+		const std::string table_name = get_table_name();
+
+		const auto &column_info = get_column_info();
+
+		std::vector< SPC<Where> > where_clauses;
+
+		for(const auto &info : column_info) {
+			const auto &column = columns[ info.index - 1 ];
+
+			if ( !column.exists || !column.defined )
+				continue;
+
+			where_clauses.push_back( column.column_eq(info.name) );
+		}
+
+		sqlAnd where(where_clauses);
+
+		DB::deleterow(table_name, where);
 	}
 
 

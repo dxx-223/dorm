@@ -366,6 +366,18 @@ namespace DORM {
 
 
 	template<>
+	void DB::bind<double>(sql::PreparedStatement &pstmt, unsigned int &bind_offset, double value) {
+		pstmt.setDouble(bind_offset++, value);
+	}
+
+
+	template<>
+	void DB::bind<bool>(sql::PreparedStatement &pstmt, unsigned int &bind_offset, bool value) {
+		pstmt.setBoolean(bind_offset++, value);
+	}
+
+
+	template<>
 	void DB::bind<Timestamp>(sql::PreparedStatement &pstmt, unsigned int &bind_offset, Timestamp value) {
 		pstmt.setString( bind_offset++, from_unixtime(value.tv) );
 	}

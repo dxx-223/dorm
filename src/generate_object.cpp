@@ -30,8 +30,8 @@ const std::list< std::pair<std::string, std::string> > SQL_CXXTYPE_PAIRS = {
 		// varbinary, binary, blob unsupported for now
 		{ "enum",				"std::string" },
 		{ "serial",				"uint64_t" },
-		{ "timestamp\\(",		"struct timeval" },
-		{ "timestamp",			"time_t" },
+		{ "timestamp\\(",		"DORM::Timestamp" },
+		{ "timestamp",			"DORM::Timestamp" },
 		{ "boolean",			"bool" }
 };
 
@@ -43,8 +43,7 @@ std::map<std::string, std::string> CONN_BY_CXX = {
 		{ "uint32_t",			"UInt" },
 		{ "int32_t",			"Int" },
 		{ "std::string",		"String" },
-		{ "struct timeval",		"String" },
-		{ "time_t",				"String" },
+		{ "DORM::Timestamp",	"String" },
 		{ "bool",				"Boolean" }
 };
 
@@ -293,7 +292,7 @@ void parse(const std::string &str, Info &info) {
 
 
 	// CHILD_OBJECT[S]
-	std::regex child_objects_RE( "CHILD_OBJECT(S?)"  "\\("  "(\\w+)"  ", "  "(\\w+)"  "\\);?" );
+	std::regex child_objects_RE( "\n\\s*"  "CHILD_OBJECT(S?)"  "\\("  "(\\w+)"  ", "  "(\\w+)"  "\\);?" );
 
 	std::string child_str = post_create_table;
 	while( std::regex_search( child_str, smatches, child_objects_RE) ) {
@@ -360,7 +359,7 @@ void write_template( const std::string &template_filename, const Info &info, con
 
 		// prologue
 		std::string prologue = R"PROLOGUE(
-			#include "templates/object_info.hpp"
+			#include "object_info.hpp"
 			#include <iostream>
 
 			int main(int argc, char *argv[]) {
@@ -499,7 +498,7 @@ int main(int argc, char *argv[]) {
 
 			// compile
 			std::cout << "Compiling template " << tmp_filename << ".cpp to create " << tmp_filename << ".aout" << std::endl;
-			std::string command = "c++ -std=c++14 -g -O0 -Wall -I. -o " + tmp_filename + ".aout " + tmp_filename + ".cpp";
+			std::string command = "c++ -std=c++14 -g -O0 -Wall -I. -I" + template_dir + " -o " + tmp_filename + ".aout " + tmp_filename + ".cpp";
 			system( command.c_str() );
 
 			std::string dst_filename = output_dir + info.basename + std::regex_replace( template_name, std::regex("object"), "" );
