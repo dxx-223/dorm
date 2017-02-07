@@ -37,6 +37,9 @@ class <%=info.class_name%>_: public DORM::Object {
 
 		void column_from_resultset( int i, const DORM::Resultset &result );
 
+	protected:
+		static const std::string static_table_name() { return "<%=info.table_name%>"; };
+
 	public:
 		virtual void clear();
 

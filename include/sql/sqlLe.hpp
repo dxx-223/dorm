@@ -18,7 +18,7 @@ namespace DORM {
 			sqlLe(std::string init_col, std::string init_column): col(init_col), column(init_column) {};
 
 			virtual std::string to_string() const {
-				return col + " < " + column;
+				return col + " <= " + column;
 			};
 
 			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const {};
@@ -36,7 +36,7 @@ namespace DORM {
 			sqlLe(std::string init_col): col(init_col) {};
 
 			virtual std::string to_string() const {
-				return col + " < DEFAULT";
+				return col + " <= DEFAULT";
 			};
 
 			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const {};
@@ -54,7 +54,7 @@ namespace DORM {
 			sqlLe(std::string init_col): col(init_col) {};
 
 			virtual std::string to_string() const {
-				return col + " < NULL";
+				return col + " <= NULL";
 			};
 
 			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const {};
@@ -73,7 +73,7 @@ namespace DORM {
 			sqlLe(std::string init_col, CXXTYPE init_value): col(init_col), value(init_value) {};
 
 			virtual std::string to_string() const {
-				return col + " < ?";
+				return col + " <= ?";
 			};
 
 			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const {
