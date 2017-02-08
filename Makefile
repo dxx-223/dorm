@@ -10,11 +10,11 @@ INCDIRS=include
 INCLUDES=${INCDIRS:%=-I%} -isystem /usr/local/include
 
 LIBDIRS=/usr/local/lib /usr/local/lib/mysql
-LIBS=mysqlcppconn mysqlclient thr
+LIBS=mysqlcppconn mysqlclient thr stdc++
 
-CXX=c++
+CXX?=c++
 DEBUGFLAGS=-O0 -ferror-limit=3 -DDORM_DB_DEBUG
-CXXFLAGS=-pipe -g -Wall -std=c++14 -pthread -fPIC ${INCLUDES} ${DEBUGFLAGS}
+CXXFLAGS+=-pipe -g -Wall -std=c++14 -pthread -fPIC ${INCLUDES} ${DEBUGFLAGS}
 
 all: lib/libDORM.so bin/generate_object
 
