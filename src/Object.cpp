@@ -172,6 +172,7 @@ namespace DORM {
 				const uint64_t autoinc_value = DB::fetch_uint64(query);		// what happens if this throws but the previous writerow() did not?
 
 				column = autoinc_value;
+				column.exists = column.defined = true;
 			}
 		}
 
