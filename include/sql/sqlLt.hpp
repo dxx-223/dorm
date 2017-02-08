@@ -9,7 +9,7 @@ namespace DORM {
 	class sqlLt;
 
 	template<>
-	class sqlLt<Column>: public Where {
+	class sqlLt<ColName>: public Where {
 		private:
 			std::string		col;
 			std::string		column;
@@ -23,7 +23,7 @@ namespace DORM {
 
 			virtual void bind(sql::PreparedStatement &pstmt, unsigned int &bind_offset) const {};
 
-			virtual SPC<Where> make_shared() const { return std::make_shared< const sqlLt<Column> >(*this); };
+			virtual SPC<Where> make_shared() const { return std::make_shared< const sqlLt<ColName> >(*this); };
 	};
 
 

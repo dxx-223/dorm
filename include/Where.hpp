@@ -9,7 +9,7 @@
 
 namespace DORM {
 
-	class Column;
+	class ColName;
 	class Default;
 	class Null;
 

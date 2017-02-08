@@ -59,23 +59,26 @@ namespace DORM {
 
 	void Object::copy_columns(const Object &other_obj, bool only_keys ) {
 		const auto &our_column_info = get_column_info();
+		const int n_our_columns = our_column_info.size();
 
 		const auto &other_column_info = other_obj.get_column_info();
 		const int n_other_columns = other_column_info.size();
 
-		for( const auto &our_info : our_column_info ) {
+		for(int our_col_idx=0; our_col_idx<n_our_columns; ++our_col_idx) {
+			const auto &our_info = our_column_info[our_col_idx];
+
 			if ( only_keys && !our_info.is_key )
 				continue;
 
-			for(int i=0; i<n_other_columns; ++i) {
-				const auto &other_info = other_column_info[i];
+			for(int other_col_idx=0; other_col_idx<n_other_columns; ++other_col_idx) {
+				const auto &other_info = other_column_info[other_col_idx];
 				const auto &other_column = other_obj.columns[ other_info.index - 1 ];
 
 				if ( !other_column.exists || !other_column.defined || other_info.name != our_info.name )
 					continue;
 
-				columns[i] = other_column;
-				columns[i].defined = columns[i].exists = true;
+				columns[our_col_idx] = other_column;
+				columns[our_col_idx].defined = columns[our_col_idx].exists = true;
 			}
 		}
 	}
@@ -219,7 +222,7 @@ namespace DORM {
 					if ( map_it != table_by_column.end() ) {
 						const std::string &obj_col_name = obj_table_name + "." + obj_info.name;
 
-						join_query.and_where( sqlEq<Column>( obj_col_name, table_name + "." + obj_info.name ) );
+						join_query.and_where( sqlEq<ColName>( obj_col_name, table_name + "." + obj_info.name ) );
 					} else {
 						// update map of columns to table with new, previously unknown, column
 						table_by_column[ obj_info.name ] = obj_table_name;

@@ -52,9 +52,9 @@ namespace DORM {
 			Column(const CXXTYPE initial_value) { value_impl = new Value<CXXTYPE>(initial_value); };
 
 			Column(const Column &other): value_impl( other.value_impl ? other.value_impl->clone() : nullptr ) {};
-			Column(Column &&other): value_impl(other.value_impl) { value_impl = nullptr; };
+			Column(Column &&other): value_impl(other.value_impl) { other.value_impl = nullptr; };
 
-			virtual ~Column() { delete value_impl; };
+			virtual ~Column() { if (value_impl) delete value_impl; };
 
 			Column &swap(Column &other) { std::swap(value_impl, other.value_impl); return *this; };
 
