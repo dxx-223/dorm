@@ -296,8 +296,6 @@ void parse(const std::string &str, Info &info) {
 
 	std::string child_str = post_create_table;
 	while( std::regex_search( child_str, smatches, child_objects_RE) ) {
-		child_str = smatches.suffix().str();
-
 		Info::Navigator navigator;
 		navigator.object = smatches[2];
 		navigator.function = smatches[3];
@@ -308,6 +306,8 @@ void parse(const std::string &str, Info &info) {
 
 		std::cout << "CHILD ";
 		log_navigator(navigator);
+
+		child_str = smatches.suffix().str();
 	}
 }
 
