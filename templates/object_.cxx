@@ -30,7 +30,7 @@ const std::vector<DORM::Object::Info> <%=info.class_name%>_::column_info = {
 const std::vector< std::function< void(const DORM::Resultset &result, <%=info.class_name%>_ &obj) > > <%=info.class_name%>_::column_resultset_function = {
 	<% for(int i=0; i < info.columns.size(); ++i) { %>
 		<% const auto &column = info.columns[i]; %>
-		[](const DORM::Resultset &result, <%=info.class_name%>_ &obj){ obj.<%=column.name%>( result.get<%=column.conntype%>(<%=i+1%>) ); }<%= (i != info.columns.size() - 1 ? "," : "") %>
+		[](const DORM::Resultset &result, <%=info.class_name%>_ &obj){ obj.columns[<%=i%>] = static_cast<<%=column.cxxtype%>>( result.get<%=column.conntype%>(<%=i+1%>) ); }<%= (i != info.columns.size() - 1 ? "," : "") %>
 	<% } %>
 };
 

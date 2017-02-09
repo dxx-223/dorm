@@ -41,12 +41,17 @@ namespace DORM {
 		int i;
 
 		try {
-			for(i=0; i<n_columns; ++i)
+			for(i=0; i<n_columns; ++i) {
 				// check for NULLs first
-				if ( result.isNull(i+1) )
-					columns[i].undefine();
-				else
+				if ( result.isNull(i+1) ) {
+					columns[i].defined = false;
+				} else {
 					column_from_resultset(i, result);
+					columns[i].defined = true;
+				}
+
+				columns[i].exists = true;
+			}
 		} catch (sql::SQLException &e) {
 			std::cerr << "[DORM] " << e.getErrorCode() << ": " << e.what() << std::endl;
 			std::cerr << "[DORM] " << get_table_name() << " column index " << i+1 << std::endl;
@@ -74,6 +79,7 @@ namespace DORM {
 				const auto &other_info = other_column_info[other_col_idx];
 				const auto &other_column = other_obj.columns[ other_info.index - 1 ];
 
+				// XXX maybe this should copy "undefined" columns?
 				if ( !other_column.exists || !other_column.defined || other_info.name != our_info.name )
 					continue;
 
@@ -307,10 +313,8 @@ namespace DORM {
 		set_from_resultset( *results );
 
 		// reset state flags
-		for(auto &column : columns) {
+		for(auto &column : columns)
 			column.changed = false;
-			column.exists = true;
-		}
 	}
 
 
