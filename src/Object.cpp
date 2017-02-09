@@ -134,7 +134,7 @@ namespace DORM {
 				if ( column.defined )
 					inserts.push_back( column.column_eq(info.name) );
 				else if ( info.not_null )
-					inserts.push_back( sqlEq<Default>(info.name).make_shared() );
+					inserts.push_back( sqlEq<Default>(info.name).make_shared() );	// could still cause mySQL error 1364
 				else
 					inserts.push_back( sqlEq<Null>(info.name).make_shared() );
 			}

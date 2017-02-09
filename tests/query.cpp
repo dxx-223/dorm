@@ -52,7 +52,7 @@ void test() {
 
 	test_query(query);
 
-	DORM::sqlEq<DORM::Column> col_eq("age", "age");
+	DORM::sqlEq<DORM::ColName> col_eq("age", "age");
 	query.where = col_eq.make_shared();
 
 	test_query(query);

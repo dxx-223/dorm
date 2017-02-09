@@ -3,8 +3,9 @@ OBJS=${patsubst src/%.cpp, obj/%.o, ${SRCS}}
 TESTSRCS=${wildcard tests/*.cpp}
 TESTBINS=${patsubst tests/%.cpp, tests/bin/%, ${TESTSRCS}}
 
-TESTGENS=${wildcard output/*.cxx output/*/*.cxx}
-TESTOBJS=${patsubst output/%.cxx, tests/obj/%.o, ${TESTGENS}}
+TESTOBJECTS=${wildcard tests/objects/*.hpp tests/objects/*/*.hpp}
+TESTGENS=${patsubst tests/objects/%.hpp, tests/obj/%_.cxx, ${TESTOBJECTS}}
+TESTOBJS=${patsubst tests/obj/%.cxx, tests/obj/%.o, ${TESTGENS}}
 
 INCDIRS=include
 INCLUDES=${INCDIRS:%=-I%} -isystem /usr/local/include
@@ -58,9 +59,16 @@ tests: ${OBJS} ${TESTOBJS} ${TESTBINS}
 tests/bin/%: tests/%.cpp ${OBJS} ${TESTOBJS}
 	@echo 'Building test $@ from $<'
 	@mkdir -p `dirname $@`
-	@${CXX} ${CXXFLAGS} -Itests -Ioutput ${LIBDIRS:%=-L%} -o $@ $< ${OBJS} ${TESTOBJS} ${LIBS:%=-l%}
+	@${CXX} ${CXXFLAGS} -Itests -Itests/obj -Itests/objects ${LIBDIRS:%=-L%} -o $@ $< ${OBJS} ${TESTOBJS} ${LIBS:%=-l%}
 
-tests/obj/%.o: output/%.cxx ${OBJS}
+tests/obj/%_.cxx: tests/objects/%.hpp bin/generate_object 
+	@echo 'Generating object helper $@ from $<'
+	@mkdir -p `dirname $@`
+	@bin/generate_object -d tests/obj $<
+
+tests/obj/%.o: tests/obj/%.cxx
 	@echo 'Compiling object helper $@ from $<'
 	@mkdir -p `dirname $@`
-	@${CXX} ${CXXFLAGS} -Itests -Ioutput -c -o $@ $<
+	@${CXX} ${CXXFLAGS} -Itests -Itests/obj -Itests/objects -c -o $@ $<
+
+tests/obj/Test_.o: tests/obj/Test/Frog_.cxx tests/obj/Test/Single_.cxx

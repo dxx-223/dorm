@@ -11,6 +11,7 @@
 
 #include "Test/Frog_.hxx"
 
+#include "sql/sqlLike.hpp"
 
 
 class TestFrog: public TestFrog_ {
