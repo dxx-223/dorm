@@ -232,6 +232,12 @@ void parse(const std::string &str, Info &info) {
 		column.not_null = std::regex_search(column_def, std::regex("NOT NULL", std::regex::icase) );
 		column.has_default = std::regex_search(column_def, std::regex("DEFAULT", std::regex::icase) );
 
+		#if 0
+			// TIMESTAMP columns have implicit DEFAULT?
+			if ( std::regex_search(column_def, std::regex("timestamp\\(", std::regex::icase) ) )
+				column.has_default = true;
+		#endif
+
 		// try to map column type
 		for( const auto &pair : SQL_CXXTYPE_PAIRS ) {
 			if ( std::regex_search(column_def, std::regex(pair.first, std::regex::icase) ) ) {

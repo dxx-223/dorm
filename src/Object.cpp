@@ -123,7 +123,9 @@ namespace DORM {
 			if ( info.is_key )
 				continue;
 
-			std::cout << "non-key column: " << info.name << std::endl;
+			#ifdef DORM_OBJECT_DEBUG
+				std::cout << "[DORM] Non-key column: " << info.name << std::endl;
+			#endif
 
 			const auto &column = columns[ info.index - 1 ];
 
@@ -137,6 +139,9 @@ namespace DORM {
 			}
 
 			if ( (info.not_null && !info.has_default) || column.changed ) {
+				if ( info.not_null && !info.has_default && !column.defined )
+					std::cerr << "[DORM] Following save() likely to fail - considering making " << info.name << " column NULL or add DEFAULT" << std::endl;
+
 				if ( column.defined )
 					inserts.push_back( column.column_eq(info.name) );
 				else if ( info.not_null )
@@ -151,7 +156,9 @@ namespace DORM {
 			if ( !info.is_key )
 				continue;
 
-			std::cout << "key column: " << info.name << std::endl;
+			#ifdef DORM_OBJECT_DEBUG
+				std::cout << "[DORM] Key column: " << info.name << std::endl;
+			#endif
 
 			const auto &column = columns[ info.index - 1 ];
 
