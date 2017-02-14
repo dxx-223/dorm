@@ -7,15 +7,18 @@ TESTOBJECTS=${wildcard tests/objects/*.hpp tests/objects/*/*.hpp}
 TESTGENS=${patsubst tests/objects/%.hpp, tests/obj/%_.cxx, ${TESTOBJECTS}}
 TESTOBJS=${patsubst tests/obj/%.cxx, tests/obj/%.o, ${TESTGENS}}
 
-INCDIRS=include
-INCLUDES=${INCDIRS:%=-I%} -isystem /usr/local/include
-
 LIBDIRS=/usr/local/lib /usr/local/lib/mysql
 LIBS=mysqlcppconn mysqlclient thr stdc++
 
 CXX?=c++
-DEBUGFLAGS=-O0 -ferror-limit=3 -DDORM_DB_DEBUG
-CXXFLAGS+=-pipe -g -Wall -std=c++14 -pthread -fPIC ${INCLUDES} ${DEBUGFLAGS}
+CXXFLAGS+=-pipe -g -Wall -std=c++14 -pthread -fPIC ${INCLUDES}
+
+ifdef DEBUG
+CXXFLAGS+=-O0 -ferror-limit=3 -fno-omit-frame-pointer -fsanitize=address -DDORM_DB_DEBUG
+endif
+
+INCDIRS=include
+CXXFLAGS+=${addprefix -I, ${INCDIRS}} -isystem /usr/local/include
 
 all: lib/libDORM.so bin/generate_object
 
@@ -31,7 +34,7 @@ obj/%.d: src/%.cpp include/%.hpp
 	@echo 'Generating makefile $@ from $<'
 	@mkdir -p `dirname $@`
 	@echo -n 'obj/' > $@
-	@${CXX} ${CXXFLAGS} -MM $< >> $@
+	@${CXX} ${CXXFLAGS} -MM $< >> $@ || rm $@
 
 ifneq ($(MAKECMDGOALS),clean)
 DEPENDS=${patsubst src/%.cpp, obj/%.d, ${SRCS}}
