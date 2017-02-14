@@ -15,6 +15,8 @@ CXXFLAGS+=-pipe -g -Wall -std=c++14 -pthread -fPIC ${INCLUDES}
 
 ifdef DEBUG
 CXXFLAGS+=-O0 -ferror-limit=3 -fno-omit-frame-pointer -fsanitize=address -DDORM_DB_DEBUG
+else
+CXXFLAGS+=-O3
 endif
 
 INCDIRS=include
