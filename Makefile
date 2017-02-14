@@ -10,7 +10,6 @@ TESTOBJS=${patsubst tests/obj/%.cxx, tests/obj/%.o, ${TESTGENS}}
 LIBDIRS=/usr/local/lib /usr/local/lib/mysql
 LIBS=mysqlcppconn mysqlclient thr stdc++
 
-CXX?=c++
 CXXFLAGS+=-pipe -g -Wall -std=c++14 -pthread -fPIC ${INCLUDES}
 
 ifdef DEBUG

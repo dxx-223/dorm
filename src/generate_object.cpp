@@ -504,7 +504,7 @@ int main(int argc, char *argv[]) {
 
 			// compile
 			std::cout << "Compiling template " << tmp_filename << ".cpp to create " << tmp_filename << ".aout" << std::endl;
-			std::string command = "c++ -std=c++14 -g -O0 -Wall -I. -I" + template_dir + " -o " + tmp_filename + ".aout " + tmp_filename + ".cpp";
+			std::string command = "c++ -std=c++14 -g -pipe -O0 -Wall -I. -I" + template_dir + " -o " + tmp_filename + ".aout " + tmp_filename + ".cpp";
 			system( command.c_str() );
 
 			std::string dst_filename = output_dir + info.basename + std::regex_replace( template_name, std::regex("object"), "" );
