@@ -5,6 +5,7 @@
 #include <cppconn/driver.h>
 
 #include <thread>
+#include <sstream>
 
 
 char DB_URI[] = "unix:///tmp/mysql.sock";
@@ -13,33 +14,39 @@ char DB_PASSWORD[] = "";
 char DB_SCHEMA[] = "test";
 
 
-void processlist() {
+void processlist( std::string prefix = "") {
 	DORM::Query query;
 	query.cols.push_back( "count(*) FROM information_schema.PROCESSLIST" );
 	
-	std::cout << "Connections: " << std::to_string( DORM::DB::fetch_int64(query) ) << std::endl;
+	std::stringstream ss;
+	ss << prefix << "Connections: " << DORM::DB::fetch_int64(query) << std::endl;
+	std::cout << ss.str();
 }
 
 
 void new_db_thread(int i) {
-	std::cout << "new thread [" << i << "]" << std::endl;
+	std::stringstream ss;
+	ss << "[" << i << "] Thread START" << std::endl;
+	std::cout << ss.str();
 
 	DORM::DB::check_connection();
 
-	processlist();
+	processlist( "[" + std::to_string(i) + "] " );
 
-	std::cout << "exit thread [" << i << "]" << std::endl;
+	ss.str("");
+	ss << "[" << i << "] Thread END" << std::endl;
+	std::cout << ss.str();
 }
 
 
 int main() {
-	std::cout << "main start" << std::endl;
+	std::cout << "[MAIN] Start" << std::endl;
 
 	DORM::DB::connect( DB_URI, DB_USER, DB_PASSWORD, DB_SCHEMA );
 	
-	processlist();
+	processlist("[MAIN] ");
 	
-	std::cout << "main connected - creating threads" << std::endl;
+	std::cout << "[MAIN] Connected - creating threads" << std::endl;
 	
 	std::vector<std::thread> threads;
 	
@@ -48,16 +55,16 @@ int main() {
 		threads.push_back( std::move(t) );
 	}
 
-	std::cout << "main waiting for threads" << std::endl;
+	std::cout << "[MAIN] Waiting for threads" << std::endl;
 
 	for(int i=0; i<threads.size(); i++) {
 		std::thread &t( threads[i] );
 		t.join();
 		
-		processlist();
+		processlist("[MAIN] ");
 	}
 	
-	std::cout << "main exit" << std::endl;
+	std::cout << "[MAIN] Exit" << std::endl;
 		
 	exit(0);
 }

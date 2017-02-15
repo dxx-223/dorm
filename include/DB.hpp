@@ -35,6 +35,7 @@ namespace DORM {
 
 			static void connect( const std::string db_uri, const std::string db_user, const std::string db_password, const std::string db_schema );
 			static void connect( sql::Connection *new_conn );
+			static void disconnect();
 
 			static bool check_connection();
 

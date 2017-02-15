@@ -20,18 +20,19 @@ namespace DORM {
 
 	void DB::connect() {
 		sql::Driver *driver = get_driver_instance();
+		sql::ConnectOptionsMap options = {
+				{ "hostName",	uri },
+				{ "userName",	user },
+				{ "password",	password },
+				{ "schema",		schema }
+		};
 
 		try {
-			conn.reset( driver->connect(uri, user, password) );
+			conn.reset( driver->connect(options) );
 		} catch( sql::SQLException &e ) {
 			std::cerr << "[DORM] " << e.getErrorCode() << ": " << e.what() << std::endl;
 			throw e;
 		}
-
-		bool opt_reconnect = true;
-		conn->setClientOption("OPT_RECONNECT", &opt_reconnect);
-
-		conn->setSchema( schema );
 
 		execute("SET NAMES utf8");
 		execute("SET @@session.tx_isolation = @@global.tx_isolation");
@@ -95,11 +96,28 @@ namespace DORM {
 	}
 
 
+	void DB::disconnect() {
+		conn->close();
+		conn.reset(nullptr);
+	}
+
+
+	// try to maintain connection but return false if we can't
 	bool DB::check_connection() {
 		if (!conn)
-			connect();
+			connect();	// throws on failure
 
-		return conn && conn->isValid();
+		// "conn" must have a pointer now
+
+		if ( !conn->isValid() ) {
+			#ifdef DORM_DB_DEBUG
+				std::cout << "[DORM] Reconnecting..." << std::endl;
+			#endif
+
+			conn->reconnect();
+		}
+
+		return conn->isValid();
 	}
 
 
