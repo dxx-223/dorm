@@ -155,13 +155,13 @@ std::string snake_to_filename(std::string snake) {
 
 void parse(const std::string &str, Info &info) {
 	// locate "create table" comment
-	std::regex create_table_RE( "/\\*"  "\\s+"  "CREATE TABLE "  "(\\w+)"  " \\("  "((?:.|[\n\r])*)"  "\\);"  "\\s+"  "\\*/", std::regex::icase );
+	std::regex create_table_RE( "/\\*"  "\\s+"  "CREATE TABLE "  "(\\w+)"  " \\("  "((?:.|[\n\r])*)"  "\\);"  "(?:.|[\n\r])*?"  "\\*/", std::regex::icase );
 	std::smatch smatches;
 
 	std::regex_search(str, smatches, create_table_RE );
 
 	if (smatches.size() != 3) {
-		std::cerr << "Couldn't find SQL 'Create table' statement" << std::endl;
+		std::cerr << "Couldn't find SQL 'CREATE TABLE' statement" << std::endl;
 		exit(2);
 	}
 
