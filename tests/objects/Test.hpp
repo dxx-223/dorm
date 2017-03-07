@@ -6,6 +6,8 @@
 		testID				serial,
 		name				varchar(255) not null,
 		age					int unsigned not null,
+		simple_time			timestamp,
+		complex_time		timestamp(6),
 		primary key			(testID)
 	);
 */

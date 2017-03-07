@@ -24,7 +24,7 @@ namespace DORM {
 		if (!subquery)
 			throw std::runtime_error("Empty Subquery");
 
-		return "(SELECT " + subquery->to_string() + ") AS " + subquery_alias;
+		return "(" + subquery->to_string() + ") AS " + subquery_alias;
 	}
 
 

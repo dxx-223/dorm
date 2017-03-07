@@ -140,7 +140,7 @@ namespace DORM {
 
 			if ( (info.not_null && !info.has_default) || column.changed ) {
 				if ( info.not_null && !info.has_default && !column.defined )
-					std::cerr << "[DORM] Following save() likely to fail - considering making " << info.name << " column NULL or add DEFAULT" << std::endl;
+					std::cerr << "[DORM] Following save() likely to fail - considering making '" << info.name << "' column NULL or add DEFAULT" << std::endl;
 
 				if ( column.defined )
 					inserts.push_back( column.column_eq(info.name) );
