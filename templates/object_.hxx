@@ -64,6 +64,8 @@ class <%=info.class_name%>_: public DORM::Object {
 		virtual std::unique_ptr<<%=info.class_name%>> result();
 		virtual void search_and_destroy();
 
+		virtual std::unique_ptr<<%=info.class_name%>> clone() const;
+
 		// navigators
 		<% for (auto &navigator : info.navigators) { %>
 			virtual std::unique_ptr<<%=navigator.object%>> <%=navigator.function%>() const;

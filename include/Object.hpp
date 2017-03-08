@@ -37,7 +37,6 @@ namespace DORM {
 			virtual const int get_autoinc_index() const { return 0; };
 
 			virtual void search_prep_columns(Query &query) const;
-			// virtual void search_prep_join(Query &query, ...?);
 
 			virtual std::unique_ptr<Object> make_unique() =0;	// actually returns std::unique_ptr<derived Object>
 			virtual void set_from_resultset(const Resultset &result);
@@ -52,8 +51,7 @@ namespace DORM {
 			Object() {};
 			Object(Object &&) =delete;			// might be safe to allow move-constructor
 
-			Object(const Object &) =delete;		// really likely to be a bad idea
-			// Object(const Object &other_obj): resultset(nullptr) { copy_columns(other_obj); };	// also used by CHILD_OBJECTS navigators, e.g. Users to UserComments via userID
+			Object(const Object &) =delete;		// really likely to be a bad idea - use clone() instead
 
 			virtual ~Object() {};
 
@@ -72,11 +70,11 @@ namespace DORM {
 			virtual uint64_t search() { std::initializer_list< std::reference_wrapper<const Object> > objs = {}; return search(objs); };
 
 			virtual void delete_obj();
-			virtual void search_and_destroy() =0;
+			virtual void search_and_destroy() =0;	// has to be generated otherwise tries to search base "Object"s instead of derived objects
 
 			virtual void search_prep( Query &query ) const {};
 
-			// virtual unique_ptr<derived Object> result() <-- generated and not declared here due to specific return type
+			// virtual unique_ptr<derived Object> result()		<-- generated and not declared here due to derived return type
 
 			virtual void refresh();
 			virtual bool present();
@@ -84,6 +82,9 @@ namespace DORM {
 
 			virtual bool lock_record( LOCK_MODE mode = EXCLUSIVE );
 			virtual uint64_t lock_records( LOCK_MODE mode = EXCLUSIVE );
+
+			// clone() copies all columns but the clone's columns have "changed" reset to false
+			// virtual unique_ptr<derived Object> clone() const		<-- generated and not declared here due to derived return type
 	};
 
 }
