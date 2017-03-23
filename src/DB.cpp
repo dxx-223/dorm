@@ -29,8 +29,12 @@ namespace DORM {
 
 		try {
 			conn.reset( driver->connect(options) );
-		} catch( sql::SQLException &e ) {
-			std::cerr << "[DORM] " << e.getErrorCode() << ": " << e.what() << std::endl;
+		} catch( const sql::SQLException &e ) {
+			// 1040: Too many connections is a special case that is handled silently
+			if (e.getErrorCode() == 1040)
+				throw DB::connection_issue(e);
+
+			std::cerr << "[DORM] Connect failed: " << e.getErrorCode() << ": " << e.what() << std::endl;
 			throw e;
 		}
 

@@ -23,6 +23,10 @@ namespace DORM {
 			static void connect();
 
 		public:
+			class connection_issue : public sql::SQLException {
+				public: connection_issue(const sql::SQLException &e) : sql::SQLException(e) {};
+			};
+
 			class ThreadGuard {
 				private:
 					static bool first_init;

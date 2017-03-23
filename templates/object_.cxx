@@ -110,7 +110,9 @@ void <%=info.class_name%>_::search_and_destroy() {
 
 std::unique_ptr<<%=info.class_name%>> <%=info.class_name%>_::clone() const {
 	auto obj = std::make_unique<<%=info.class_name%>>();
-	obj->copy_columns(*this, true);
+
+	obj->copy_columns(*this, false);
+
 	for (auto &column : obj->columns)
 		column.changed = false;
 	return obj;
