@@ -458,6 +458,7 @@ int main(int argc, char *argv[]) {
 
 		// do the hard work
 		Info info;
+		info.autoinc_index = 0;		// no known auto_increment column
 
 		// determine actual class name
 		std::smatch smatches;

@@ -29,7 +29,7 @@ struct Info {
 	std::vector<Column>						columns;
 	std::vector<Navigator>					navigators;
 
-	int										autoinc_index = 0;
+	int										autoinc_index;
 
 	std::string								key_params;
 };
