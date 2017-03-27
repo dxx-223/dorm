@@ -3,6 +3,7 @@
 #include "Query.hpp"
 #include "Timestamp.hpp"
 
+#include <cstring>
 #include <mysql/mysql.h>
 #include <cppconn/connection.h>
 #include <cppconn/driver.h>
