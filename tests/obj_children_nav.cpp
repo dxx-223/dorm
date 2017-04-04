@@ -3,21 +3,11 @@
 #include "Test.hpp"
 #include "Test/Frog.hpp"
 
-
-char DB_URI[] = "unix:///tmp/mysql.sock";
-char DB_USER[] = "test";
-char DB_PASSWORD[] = "";
-char DB_SCHEMA[] = "test";
+#include "db_credentials.hpp"
 
 
 int main() {
 	DORM::DB::connect( DB_URI, DB_USER, DB_PASSWORD, DB_SCHEMA );
-
-	DORM::DB::execute("drop table if exists Tests");
-	DORM::DB::execute("create temporary table Tests ( testID serial, name varchar(255) not null, age int unsigned not null, primary key (testID) )");
-
-	DORM::DB::execute("drop table if exists TestFrogs");
-	DORM::DB::execute("create temporary table TestFrogs ( testID bigint unsigned not null, frog_flavour varchar(255) not null, primary key (testID) )");
 
 	Test test;
 	test.name("Fudge");
@@ -42,6 +32,13 @@ int main() {
 		while( auto frog = frogs->result() ) {
 			std::cout << "testID: " << frog->testID() << ", flavour: " << frog->frog_flavour() << std::endl;
 			frog->foo();
+
+			// if we reach here - test is ok
+			exit(0);
 		}
+
+		throw std::runtime_error("No child TestFrog records found");
 	}
+
+	throw std::runtime_error("No parent Test records found");
 }

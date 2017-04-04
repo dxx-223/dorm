@@ -7,10 +7,7 @@
 
 #include "Test.hpp"
 
-char DB_URI[] = "unix:///tmp/mysql.sock";
-char DB_USER[] = "test";
-char DB_PASSWORD[] = "";
-char DB_SCHEMA[] = "test";
+#include "db_credentials.hpp"
 
 
 void test_query(DORM::Query query) {
@@ -25,9 +22,7 @@ void test_query(DORM::Query query) {
 int main() {
 	DORM::DB::connect( DB_URI, DB_USER, DB_PASSWORD, DB_SCHEMA );
 
-	DORM::DB::execute("drop table if exists Tests");
-	DORM::DB::execute("create temporary table Tests ( testID serial, name varchar(255) not null, age int unsigned not null, primary key (testID) )");
-	DORM::DB::execute("insert into Tests values (null, 'Fudge', 5), (null, 'Dominic', 43), (null, 'Georgie', 5)");
+	DORM::DB::execute("insert into Tests values (null, 'Fudge', 5, null, null), (null, 'Dominic', 43, null, null)");
 
 	Test tests;
 	tests.age(5);
@@ -36,8 +31,15 @@ int main() {
 
 	std::cout << "Found rows: " << found_rows << std::endl;
 
+	if (found_rows != 1)
+		throw std::runtime_error("Incorrect number of found rows");
+
 	while( auto test = tests.result() ) {
 		std::cout << "testID: " << test->testID() << ", name: " << test->name() << ", age: " << test->age() << std::endl;
 		test->foo();
+
+		exit(0);
 	}
+
+	throw std::runtime_error("No Test records found?");
 }

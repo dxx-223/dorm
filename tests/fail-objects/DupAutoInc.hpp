@@ -5,12 +5,11 @@
 	create table Tests (
 		testID				serial,
 		name				varchar(255) not null,
-		age					int unsigned not null,
+		age					int unsigned not null auto_increment,
 		simple_time			timestamp,
 		complex_time		timestamp(6),
 		primary key			(testID),
-		index				(name, age),
-		index				(simple_time)
+		index				(name, age)
 	);
 */
 

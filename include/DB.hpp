@@ -51,6 +51,7 @@ namespace DORM {
 			static int64_t fetch_int64( const Query &query );
 			static double fetch_double( const Query &query );
 			static std::string fetch_string( const Query &query );
+			static bool fetch_bool( const Query &query );
 
 			static int writerow( const std::string &table, const std::vector< SPC<Where> > &inserts_and_updates );
 			static int writerow( const std::string &table, const std::vector< SPC<Where> > &inserts, const std::vector< SPC<Where> > &updates );

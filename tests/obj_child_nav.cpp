@@ -3,21 +3,11 @@
 #include "Test.hpp"
 #include "Test/Single.hpp"
 
-
-char DB_URI[] = "unix:///tmp/mysql.sock";
-char DB_USER[] = "test";
-char DB_PASSWORD[] = "";
-char DB_SCHEMA[] = "test";
+#include "db_credentials.hpp"
 
 
 int main() {
 	DORM::DB::connect( DB_URI, DB_USER, DB_PASSWORD, DB_SCHEMA );
-
-	DORM::DB::execute("drop table if exists Tests");
-	DORM::DB::execute("create temporary table Tests ( testID serial, name varchar(255) not null, age int unsigned not null, primary key (testID) )");
-
-	DORM::DB::execute("drop table if exists TestSingles");
-	DORM::DB::execute("create temporary table TestSingles ( testID bigint unsigned not null, blah varchar(255) not null, primary key (testID) )");
 
 	Test test;
 	test.name("Fudge");
@@ -37,7 +27,15 @@ int main() {
 		test->foo();
 
 		auto single = test->test_single();
-		std::cout << "testID: " << single->testID() << ", blah: " << single->blah() << std::endl;
-		single->foo();
+		if (single) {
+			std::cout << "testID: " << single->testID() << ", blah: " << single->blah() << ", something: " << single->something() << std::endl;
+			single->foo();
+
+			exit(0);
+		}
+
+		throw std::runtime_error("No child TestSingle records found");
 	}
+
+	throw std::runtime_error("No parent Test records found");
 }

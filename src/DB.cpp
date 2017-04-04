@@ -204,6 +204,16 @@ namespace DORM {
 	}
 
 
+	bool DB::fetch_bool( const Query &query ) {
+		std::unique_ptr<Resultset> results( select(query) );
+
+		if ( results && results->next() )
+			return results->getBoolean(1);
+
+		return "";
+	}
+
+
 	int DB::writerow( const std::string &table, const std::vector< SPC<Where> > &inserts_and_updates ) {
 		// the same data is used in the INSERT clause as the ON UPDATE clause
 		return writerow( table, inserts_and_updates, inserts_and_updates );
@@ -327,6 +337,9 @@ namespace DORM {
 	time_t DB::unix_timestamp( const std::string &ts ) {
 		if (ts == "0000-00-00 00:00:00")
 			return (time_t) 0;
+
+		if ( ts.size() < 19 )
+			return (time_t) -1;	// string too short
 
 		struct tm tm;
 

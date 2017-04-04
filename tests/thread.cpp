@@ -7,11 +7,7 @@
 #include <thread>
 #include <sstream>
 
-
-char DB_URI[] = "unix:///tmp/mysql.sock";
-char DB_USER[] = "root";
-char DB_PASSWORD[] = "";
-char DB_SCHEMA[] = "test";
+#include "db_credentials.hpp"
 
 
 void processlist( std::string prefix = "") {

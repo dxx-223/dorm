@@ -3,11 +3,7 @@
 #include <mysql/mysql.h>
 #include <cppconn/driver.h>
 
-
-char DB_URI[] = "unix:///tmp/mysql.sock";
-char DB_USER[] = "test";
-char DB_PASSWORD[] = "";
-char DB_SCHEMA[] = "test";
+#include "db_credentials.hpp"
 
 
 int main() {
@@ -30,16 +26,13 @@ int main() {
 
 	bool opt_reconnect = true;
 	conn->setClientOption("OPT_RECONNECT", &opt_reconnect);
-
 	conn->setSchema( DB_SCHEMA );
 
+	// use existing connection
 	DORM::DB::connect( conn );
-	DORM::DB::execute("SET NAMES utf8");
-	DORM::DB::execute("SET @@session.tx_isolation = @@global.tx_isolation");
 	
-	
+	// create connection using credentials
 	DORM::DB::connect( DB_URI, DB_USER, DB_PASSWORD, DB_SCHEMA );
-	
 	
 	exit(0);
 }

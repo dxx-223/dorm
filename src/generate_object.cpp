@@ -13,6 +13,10 @@
 #include <cstdlib>
 #include <unistd.h>
 
+#ifndef TMP_DIR
+#define TMP_DIR "/tmp"
+#endif
+
 
 // order is important
 const std::list< std::pair<std::string, std::string> > SQL_CXXTYPE_PAIRS = {
@@ -360,8 +364,8 @@ void write_template( const std::string &template_filename, const Info &info, con
 
 	try {
 		std::ofstream fs;
-		fs.exceptions ( std::ifstream::failbit | std::ifstream::badbit );
-		fs.open(dst_filename, std::ifstream::out | std::ifstream::trunc);
+		fs.exceptions ( std::ofstream::failbit | std::ofstream::badbit );
+		fs.open(dst_filename, std::ofstream::out | std::ofstream::trunc);
 
 		// prologue
 		std::string prologue = R"PROLOGUE(
@@ -375,18 +379,18 @@ void write_template( const std::string &template_filename, const Info &info, con
 
 		// write Info object
 		fs << "Info info = {\n";
-		fs << "\"" << info.class_name << "\",\n";
-		fs << "\"" << info.table_name << "\",\n";
-		fs << "\"" << info.basename << "\",\n";
+		fs << "\"" << info.class_name << "\", // class name\n";
+		fs << "\"" << info.table_name << "\", // table name\n";
+		fs << "\"" << info.basename << "\", // basename\n";
 		// keys
-		fs << "{ " << join(info.keys, ", ", "\"") << " },\n";
+		fs << "{ " << join(info.keys, ", ", "\"") << " }, // keys\n";
 		// indexes
-		fs << "{\n";
+		fs << "{ // indexes\n";
 		for(int i=0; i<info.indexes.size(); ++i)
 			fs << "\t{ " << join(info.indexes[i], ", ", "\"") << " }" << (i != info.indexes.size() - 1 ? "," : "") << "\n";
 		fs << "},\n";
 		// columns
-		fs << "{\n";
+		fs << "{ // columns\n";
 		for(int i=0; i<info.columns.size(); ++i) {
 			const auto &column = info.columns[i];
 			fs << "\t{ \"" << column.name << "\", ";
@@ -402,7 +406,7 @@ void write_template( const std::string &template_filename, const Info &info, con
 		}
 		fs << "},\n";
 		// navigators
-		fs << "{\n";
+		fs << "{ // navigators\n";
 		for(int i=0; i<info.navigators.size(); ++i) {
 			const auto &navigator = info.navigators[i];
 			fs << "\t{ \"" << navigator.object << "\", ";
@@ -415,9 +419,9 @@ void write_template( const std::string &template_filename, const Info &info, con
 		}
 		fs << "},\n";
 		// autoinc
-		fs << info.autoinc_index << ",\n";
+		fs << info.autoinc_index << ", // auto_increment index\n";
 		// key_params
-		fs << "\"" << info.key_params << "\"\n";
+		fs << "\"" << info.key_params << "\" // key parameters\n";
 		// done!
 		fs << "};\n";
 
@@ -442,7 +446,7 @@ int main(int argc, char *argv[]) {
 	std::vector<std::string> args( argv + 1, argv + argc );
 
 	if ( argc <= 1 || (args[0] == "-d" && argc <= 3) ) {
-		std::cerr << "usage: " << argv[0] << " [-d output-dir] object.?pp" << std::endl;
+		std::cerr << "usage: " << argv[0] << " [-d output-dir] object.hpp [object.hpp ...]" << std::endl;
 		exit(1);
 	}
 
@@ -464,7 +468,7 @@ int main(int argc, char *argv[]) {
 		std::smatch smatches;
 
 		if ( !std::regex_match(src_filename, smatches, std::regex("(?:|.*?/)"  "([A-Z].+)"  "\\.[ch]pp") ) ) {
-			std::cerr << "Can't convert filename to class name" << std::endl;
+			std::cerr << "Can't convert filename '" << src_filename << "' to class name" << std::endl;
 			exit(2);
 		}
 
@@ -496,7 +500,7 @@ int main(int argc, char *argv[]) {
 		std::string template_dir = std::regex_replace( argv[0], std::regex("bin/[^/]+"), "templates/" );
 
 		for( const auto &template_name : template_names ) {
-			char tmp_fmt[] = "/tmp/DORM-XXXXXX";
+			char tmp_fmt[] = TMP_DIR "/DORM-XXXXXX";
 			mktemp(tmp_fmt);
 
 			const std::string tmp_filename( tmp_fmt );

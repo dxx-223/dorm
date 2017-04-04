@@ -8,9 +8,9 @@
 		age					int unsigned not null,
 		simple_time			timestamp,
 		complex_time		timestamp(6),
+		bad_type			no_such_sql_type,
 		primary key			(testID),
-		index				(name, age),
-		index				(simple_time)
+		index				(name, age)
 	);
 */
 

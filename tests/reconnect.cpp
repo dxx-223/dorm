@@ -8,11 +8,7 @@
 #include <sstream>
 #include <unistd.h>
 
-
-char DB_URI[] = "unix:///tmp/mysql.sock";
-char DB_USER[] = "root";
-char DB_PASSWORD[] = "";
-char DB_SCHEMA[] = "test";
+#include "db_credentials.hpp"
 
 
 void processlist( std::string prefix = "") {
@@ -40,7 +36,11 @@ int main() {
 
 	sleep(5);
 
-	processlist();		// will fail
+	try {
+		processlist();		// will fail
+	} catch(...) {
+		exit(0);
+	}
 
-	exit(0);
+	throw std::runtime_error("timeout reconnect issue");
 }

@@ -7,10 +7,7 @@
 
 #include "Test.hpp"
 
-char DB_URI[] = "unix:///tmp/mysql.sock";
-char DB_USER[] = "test";
-char DB_PASSWORD[] = "";
-char DB_SCHEMA[] = "test";
+#include "db_credentials.hpp"
 
 
 void test_query(DORM::Query query) {
@@ -25,9 +22,6 @@ void test_query(DORM::Query query) {
 
 int main() {
 	DORM::DB::connect( DB_URI, DB_USER, DB_PASSWORD, DB_SCHEMA );
-
-	DORM::DB::execute("drop table if exists Tests");
-	DORM::DB::execute("create temporary table Tests ( testID serial, name varchar(255) not null, age int unsigned not null, simple_time timestamp, complex_time timestamp(6), primary key (testID) )");
 
 	struct timeval tv = { time(nullptr), 123456 };
 
@@ -45,6 +39,14 @@ int main() {
 
 	test_query(query);
 
+	auto loaded_test = Test::load( t.testID() );
+
+	if ( loaded_test->simple_time() != t.simple_time() )
+		throw std::runtime_error("simple time mismatch");
+
+	if ( loaded_test->complex_time() != t.complex_time() )
+		throw std::runtime_error("complex time mismatch");
+
 	t.name("Sludge");
 	t.age(6);
 	t.simple_time( time(nullptr) );
@@ -54,4 +56,14 @@ int main() {
 	std::cout << "t's autoinc column value: " << t.testID() << std::endl;
 
 	test_query(query);
+
+	loaded_test = Test::load( t.testID() );
+
+	if ( loaded_test->simple_time() != t.simple_time() )
+		throw std::runtime_error("simple time mismatch");
+
+	if ( loaded_test->complex_time() != t.complex_time() )
+		throw std::runtime_error("complex time mismatch");
+
+	exit(0);
 }

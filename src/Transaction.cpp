@@ -12,6 +12,14 @@ namespace DORM {
 	}
 
 
+	Transaction::Transaction(Transaction &&other) noexcept {
+		default_action = other.default_action;
+		is_active = other.is_active;
+
+		other.is_active = false;
+	}
+
+
 	Transaction::~Transaction() {
 		if (!is_active)
 			return;

@@ -5,44 +5,37 @@
 #include "sql/sqlEq.hpp"
 #include "sql/sqlAnd.hpp"
 
-
-char DB_URI[] = "unix:///tmp/mysql.sock";
-char DB_USER[] = "test";
-char DB_PASSWORD[] = "";
-char DB_SCHEMA[] = "test";
-
-
-void test_query(DORM::Query query) {
-	std::unique_ptr<DORM::Resultset> results( DORM::DB::select(query) );
-
-	if (results)
-		while( results->next() )
-			std::cout << "Name: " << results->getString(1) << ", age: " << results->getInt(2) << std::endl;
-}
+#include "db_credentials.hpp"
 
 
 void test() {
 	DORM::DB::connect( DB_URI, DB_USER, DB_PASSWORD, DB_SCHEMA );
 
-	DORM::DB::execute("drop table if exists DORM_test");
-	DORM::DB::execute("create temporary table DORM_test ( name varchar(255), age int )");
-	DORM::DB::execute("insert into DORM_test values ('Dom', 43),('Melody',600000000)");
+	DORM::DB::execute("insert into Tests values (null, 'Dom', 43, null, null)");
 
 	DORM::sqlEq<int> age_eq("age", 5);
 	DORM::sqlEq<std::string> name_eq("name", "Fudge");
 
 	std::vector< SPC<DORM::Where> > inserts{ age_eq.make_shared(), name_eq.make_shared() };
 
-	DORM::DB::writerow("DORM_test", inserts);
+	DORM::DB::writerow("Tests", inserts);
 	
 	DORM::Query query;
-	
 	query.cols.push_back("*");
-	
-	DORM::Tables test_tables("DORM_test");
-	query.tables = test_tables;
+	query.tables = DORM::Tables("Tests");
 
-	test_query(query);
+	std::unique_ptr<DORM::Resultset> results( DORM::DB::select(query) );
+
+	int n_rows = 0;
+	
+	if (results)
+		while( results->next() ) {
+			++n_rows;
+			std::cout << "Name: " << results->getString(2) << ", age: " << results->getInt(3) << std::endl;
+		}
+	
+	if (n_rows != 2)
+		throw std::runtime_error("Incorrect number of rows found");
 }
 
 

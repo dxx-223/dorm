@@ -7,5 +7,10 @@ int main() {
 
 	auto cloned_t = t.clone();
 
-	std::cout << "Clone's name: " << t.name() << std::endl;
+	std::cout << "Clone's name: " << cloned_t->name() << std::endl;
+
+	if ( cloned_t->name() != t.name() )
+		throw std::runtime_error("Clone failed");
+
+	exit(0);
 }

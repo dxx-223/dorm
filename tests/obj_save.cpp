@@ -7,10 +7,7 @@
 
 #include "Test.hpp"
 
-char DB_URI[] = "unix:///tmp/mysql.sock";
-char DB_USER[] = "test";
-char DB_PASSWORD[] = "";
-char DB_SCHEMA[] = "test";
+#include "db_credentials.hpp"
 
 
 void test_query(DORM::Query query) {
@@ -24,9 +21,6 @@ void test_query(DORM::Query query) {
 
 int main() {
 	DORM::DB::connect( DB_URI, DB_USER, DB_PASSWORD, DB_SCHEMA );
-
-	DORM::DB::execute("drop table if exists Tests");
-	DORM::DB::execute("create temporary table Tests ( testID serial, name varchar(255) not null, age int unsigned not null, primary key (testID) )");
 
 	Test t;
 	t.name("Fudge");
@@ -47,4 +41,9 @@ int main() {
 	std::cout << "t's autoinc column value: " << t.testID() << std::endl;
 
 	test_query(query);
+
+	if (t.testID() != 1)
+		throw std::runtime_error("Unexpected AUTO_INCREMENT/serial testID");
+
+	exit(0);
 }

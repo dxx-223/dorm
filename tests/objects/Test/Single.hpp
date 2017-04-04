@@ -5,6 +5,7 @@
 	create table TestSingles (
 		testID				bigint unsigned not null,
 		blah				varchar(255) not null,
+		something			int not null default 123,
 		primary key			(testID)
 	);
 */

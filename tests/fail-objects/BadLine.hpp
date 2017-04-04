@@ -10,7 +10,7 @@
 		complex_time		timestamp(6),
 		primary key			(testID),
 		index				(name, age),
-		index				(simple_time)
+		BAD-LINE
 	);
 */
 
