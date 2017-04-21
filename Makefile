@@ -18,6 +18,8 @@ TESTFAILGENS=${patsubst tests/fail-objects/%.hpp, tests/fail-obj/%_.cxx, ${TESTF
 TESTFAILOBJS=${patsubst tests/fail-obj/%.cxx, tests/fail-obj/%.o, ${TESTFAILGENS}}
 
 CXXFLAGS+=-DTMP_DIR=\"test-tmp\"
+else
+LLVM_MERGE_PROFDATA?=true
 endif
 
 LIBDIRS=/usr/local/lib /usr/local/lib/mysql

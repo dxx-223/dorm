@@ -57,7 +57,7 @@ namespace DORM {
 			static int writerow( const std::string &table, const std::vector< SPC<Where> > &inserts, const std::vector< SPC<Where> > &updates );
 
 			static int deleterow( const std::string &table, const Where &where_clause );
-			static int execute( const std::string &sql );
+			static bool execute( const std::string &sql );
 
 			static std::string from_unixtime( const time_t t );
 			static std::string from_unixtime( const struct timeval &tv );

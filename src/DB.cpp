@@ -296,7 +296,7 @@ namespace DORM {
 	}
 
 
-	int DB::execute(const std::string &sql) {
+	bool DB::execute(const std::string &sql) {
 		#ifdef DORM_DB_DEBUG
 			std::cout << "[DORM] Prepare SQL: " << sql << std::endl;
 		#endif
@@ -304,7 +304,17 @@ namespace DORM {
 		try {
 			std::unique_ptr<sql::Statement> stmt( conn->createStatement() );
 
-			return stmt->execute(sql);
+			bool result = stmt->execute(sql);
+
+			// this is needed because although execute() returns a bool
+			// some statements (e.g. "optimize table") also produce a resultset
+			// and this resultset needs to be cleared/closed
+			// before a similar command is execute()d
+			// otherwise following error occurs:
+			// 2014: Commands out of sync; you can't run this command now
+			std::unique_ptr<sql::ResultSet> results( stmt->getResultSet() );
+
+			return result;
 		} catch (sql::SQLException &e) {
 			std::cerr << "[DORM] " << e.getErrorCode() << ": " << e.what() << std::endl;
 			std::cerr << "[DORM] " << sql << std::endl;
