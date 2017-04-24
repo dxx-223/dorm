@@ -39,7 +39,6 @@ namespace DORM {
 			throw e;
 		}
 
-		execute("SET NAMES utf8");
 		execute("SET @@session.tx_isolation = @@global.tx_isolation");
 	}
 
