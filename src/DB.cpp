@@ -36,7 +36,7 @@ namespace DORM {
 				throw DB::connection_issue(e);
 
 			std::cerr << "[DORM] Connect failed: " << e.getErrorCode() << ": " << e.what() << std::endl;
-			throw e;
+			throw;
 		}
 
 		execute("SET @@session.tx_isolation = @@global.tx_isolation");
@@ -135,7 +135,7 @@ namespace DORM {
 		} catch (sql::SQLException &e) {
 			std::cerr << "[DORM] " << e.getErrorCode() << ": " << e.what() << std::endl;
 			std::cerr << "[DORM] " << sql << std::endl;
-			throw(e);
+			throw;
 		}
 	}
 
@@ -158,7 +158,7 @@ namespace DORM {
 		} catch (sql::SQLException &e) {
 			std::cerr << "[DORM] " << e.getErrorCode() << ": " << e.what() << std::endl;
 			std::cerr << "[DORM] " << sql << std::endl;
-			throw(e);
+			throw;
 		}
 	}
 
@@ -267,7 +267,7 @@ namespace DORM {
 		} catch (sql::SQLException &e) {
 			std::cerr << "[DORM] " << e.getErrorCode() << ": " << e.what() << std::endl;
 			std::cerr << "[DORM] " << sql << std::endl;
-			throw(e);
+			throw;
 		}
 	}
 
@@ -290,7 +290,7 @@ namespace DORM {
 		} catch (sql::SQLException &e) {
 			std::cerr << "[DORM] " << e.getErrorCode() << ": " << e.what() << std::endl;
 			std::cerr << "[DORM] " << sql << std::endl;
-			throw(e);
+			throw;
 		}
 	}
 
@@ -317,7 +317,7 @@ namespace DORM {
 		} catch (sql::SQLException &e) {
 			std::cerr << "[DORM] " << e.getErrorCode() << ": " << e.what() << std::endl;
 			std::cerr << "[DORM] " << sql << std::endl;
-			throw(e);
+			throw;
 		}
 	}
 

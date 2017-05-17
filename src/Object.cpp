@@ -55,7 +55,7 @@ namespace DORM {
 		} catch (sql::SQLException &e) {
 			std::cerr << "[DORM] " << e.getErrorCode() << ": " << e.what() << std::endl;
 			std::cerr << "[DORM] " << get_table_name() << " column index " << i+1 << std::endl;
-			throw(e);
+			throw;
 		}
 	}
 
@@ -166,12 +166,8 @@ namespace DORM {
 				inserts.push_back( column.column_eq(info.name) );
 		}
 
-		// writerow in try..catch block
-		try {
-			DB::writerow( get_table_name(), inserts, updates);
-		} catch(const std::exception &e) {
-			throw e;
-		}
+		// writerow was in try..catch block -- WHY?
+		DB::writerow( get_table_name(), inserts, updates);
 
 		// grab last_insert_id() if table has AUTO_INCREMENT column
 		const int autoinc_index = get_autoinc_index();
@@ -314,7 +310,7 @@ namespace DORM {
 			sql::SQLException e("Row not found for refresh()");
 			std::cerr << "[DORM] " << e.getErrorCode() << ": " << e.what() << std::endl;
 			std::cerr << "[DORM] " << get_table_name() << std::endl;
-			throw(e);
+			throw;
 		}
 
 		set_from_resultset( *results );
