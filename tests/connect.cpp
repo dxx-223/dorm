@@ -8,7 +8,7 @@
 
 int main() {
 	// mySQL init
-	mysql_library_init(0, NULL, NULL);
+	mysql_library_init(0, nullptr, nullptr);
 	sql::Driver *driver = get_driver_instance();
 
 	sql::Connection *conn = nullptr;

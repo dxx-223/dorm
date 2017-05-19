@@ -52,7 +52,7 @@ namespace DORM {
 			first_init = false;
 
 			// is this (and hence the whole "first_init" code) even needed?
-			mysql_library_init(0, NULL, NULL);
+			mysql_library_init(0, nullptr, nullptr);
 		}
 
 		#ifdef DORM_DB_DEBUG
@@ -352,12 +352,12 @@ namespace DORM {
 
 		struct tm tm;
 
-		tm.tm_year = strtoul( ts.substr(0, 4).c_str(), NULL, 10 ) - 1900;
-		tm.tm_mon = strtoul( ts.substr(5, 2).c_str(), NULL, 10) - 1;
-		tm.tm_mday = strtoul( ts.substr(8, 2).c_str(), NULL, 10);
-		tm.tm_hour = strtoul( ts.substr(11, 2).c_str(), NULL, 10);
-		tm.tm_min = strtoul( ts.substr(14, 2).c_str(), NULL, 10);
-		tm.tm_sec = strtoul( ts.substr(17, 2).c_str(), NULL, 10);
+		tm.tm_year = strtoul( ts.substr(0, 4).c_str(), nullptr, 10 ) - 1900;
+		tm.tm_mon = strtoul( ts.substr(5, 2).c_str(), nullptr, 10) - 1;
+		tm.tm_mday = strtoul( ts.substr(8, 2).c_str(), nullptr, 10);
+		tm.tm_hour = strtoul( ts.substr(11, 2).c_str(), nullptr, 10);
+		tm.tm_min = strtoul( ts.substr(14, 2).c_str(), nullptr, 10);
+		tm.tm_sec = strtoul( ts.substr(17, 2).c_str(), nullptr, 10);
 
 		// get mktime() to work out if DST is in effect
 		tm.tm_isdst = -1;
@@ -374,7 +374,7 @@ namespace DORM {
 
 		// convert microseconds ?
 		if ( ts.size() > 19 )
-			tv.tv_usec = strtoul( ts.substr(20, 6).c_str(), NULL, 10);
+			tv.tv_usec = strtoul( ts.substr(20, 6).c_str(), nullptr, 10);
 
 		return tv;
 	}
